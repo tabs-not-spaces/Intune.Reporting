@@ -1,5 +1,7 @@
 # Intune Configuration Capture & Reporting Solution
 
+![](intunereporting.gif)
+
 ## Overview
 Solution to extract segments of Intune configuration and provide pretty, formatted tables of configuration data for inclusion in a high level document.
 
@@ -16,6 +18,14 @@ To be finalized:
 
 - Endpoint Security Policies
 
+## Pre-Reqs
+
+The following modules are required for use - once in production these will be automatically installed.
+
+- MSAL.PS
+- AzureADPreview
+- Newtonsoft.Json
+
 ## Usage
 
 Only works with PowerShell 7 - using all the shiny new ternary and null check tools.
@@ -31,7 +41,7 @@ Install-Module .\IntuneReporting
 There's only one function publically exposed - because I'm nice like that.
 
 ``` PowerShell
-Get-IntuneConfig -adminEmail user@clienttenant.com -tenantId clienttenant.com -outputFolder C:\path\to\store\generated\files
+Get-IntuneConfig -adminEmail "user@clienttenant.com" -tenantId "clienttenant.com" -outputFolder "C:\path\to\report\folder"
 ```
 
 Raw JSON output from the Intune environment will be sent to the **outputFolder** directory.
