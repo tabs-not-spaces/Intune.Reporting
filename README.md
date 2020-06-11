@@ -35,7 +35,7 @@ The **well-known application id** for intune (d1ddf0e4-d672-4dae-b554-9d5bdfd935
 Import the module from this repository (assuming you are already in the root of this directory)
 
 ``` PowerShell
-Install-Module .\IntuneReporting
+Import-Module .\IntuneReporting
 ```
 
 There's only one function publically exposed - because I'm nice like that.
