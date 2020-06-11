@@ -48,7 +48,8 @@ Function Get-DeviceManagementPolicy {
         $response = (Invoke-RestMethod -Method Get -Uri "$uri$filter" -Headers $authToken -ContentType "application/json").value | ForEach-Object {
             Invoke-RestMethod -Method Get -Uri "https://graph.microsoft.com/$graphApiVersion/$($graphEndpoint)/$($_.id)?`$expand=Assignments" -Headers $authToken -ContentType "application/json"
         }
-        Write-Host "$itemType`: $($response.count) items found."
+        Write-Host "$itemType`: " -NoNewline -ForegroundColor Cyan
+        write-host "$($response.count) items found." -ForegroundColor Green
         return $response
     }
     catch {

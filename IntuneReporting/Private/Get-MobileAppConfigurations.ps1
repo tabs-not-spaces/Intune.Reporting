@@ -26,7 +26,8 @@ function Get-MobileAppConfigurations {
     $uri = "https://graph.microsoft.com/$graphApiVersion/$($graphEndpoint)"
     try {
         $apps = Invoke-RestMethod -Method Get -Uri $uri -ContentType 'Application/Json' -Headers $authToken | Select-Object -ExpandProperty value
-        Write-Host "$mobileAppType applications: $($apps.count) items found."
+        Write-Host "$mobileAppType applications: " -NoNewline -ForegroundColor Cyan
+        Write-Host "$($apps.count) items found." -ForegroundColor Green
         $result = foreach ($a in $apps) {
             $ur = "https://graph.microsoft.com/beta/deviceappmanagement/mobileapps/$($a.id)?`$expand=Assignments"
             Invoke-RestMethod -Method Get -Uri $ur -Headers $authToken | Select-Object * -exclude LargeIcon

@@ -1,4 +1,4 @@
-function Get-IntuneConfig {
+function Build-IntuneConfigReport {
     [cmdletbinding()]
     param (
         [parameter(mandatory = $true)]
@@ -67,34 +67,30 @@ function Get-IntuneConfig {
         #endregion
         #region ADMX
         if ($admxConfiguration) {
+            Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
+            Write-Host " ADMX Policies                " -NoNewline -ForegroundColor Green
             "## ADMX Policies`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($gpc in $admxConfiguration) {
                 "`n### $($gpc.displayName)`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-                $folderName = $gpc.displayName -replace '\<|\>|:|"|/|\\|\||\?|\*', "_"
+                $folderName = Format-String -inputString $gpc.displayName
                 New-Item "$($paths.admx)\$folderName" -ItemType Directory -Force | Out-Null
                 $gpcDefinitionValues = Get-GroupPolicyConfigurationsDefinitionValues -GroupPolicyConfigurationID $gpc.id
                 foreach ($v in $gpcDefinitionValues) {
                     $definitionValuedefinition = Get-GroupPolicyConfigurationsDefinitionValuesdefinition -GroupPolicyConfigurationID $gpc.id -GroupPolicyConfigurationsDefinitionValueID $v.id
-                    $definitionValuedefinitionID = $definitionValuedefinition.id
+                    #$definitionValuedefinitionID = $definitionValuedefinition.id
                     $definitionValuedefinitionDisplayName = $definitionValuedefinition.displayName
-                    $groupPolicyDefinitionsPresentations = Get-GroupPolicyDefinitionsPresentations -groupPolicyDefinitionsID $gpc.id -GroupPolicyConfigurationsDefinitionValueID $v.id
+                    #$groupPolicyDefinitionsPresentations = Get-GroupPolicyDefinitionsPresentations -groupPolicyDefinitionsID $gpc.id -GroupPolicyConfigurationsDefinitionValueID $v.id
                     $definitionValuePresentationValues = Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues -GroupPolicyConfigurationID $gpc.id -GroupPolicyConfigurationsDefinitionValueID $v.id
                     $outdef = [PSCustomObject]@{
                         enabled = $($v.enabled.tostring().tolower())
                     }
                     if ($definitionValuePresentationValues.count -gt 1) {
-                        $i = 0
-                        $presvalues = @()
-                        foreach ($pres in $definitionValuePresentationValues) {
-                            $p = $pres | Select-Object -Property * -ExcludeProperty id, createdDateTime, lastModifiedDateTime, version, '*@odata*'
-                            $gpdpid = $groupPolicyDefinitionsPresentations[$i].id
-                            #$p | Add-Member -MemberType NoteProperty -Name "presentation@odata.bind" -Value "https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$($definitionValuedefinition.ID)')/presentations('$($gpdpid)')"
-                            $presvalues += $p
-                            $i++
+                        $presvalues = foreach ($pres in $definitionValuePresentationValues) {
+                            $pres | Select-Object -Property * -ExcludeProperty id, createdDateTime, lastModifiedDateTime, version, '*@odata*'
                         }
                         $outdef | Add-Member -MemberType NoteProperty -Name "presentationValues" -Value $presvalues
                     }
-                    $filename = "$($DefinitionValuedefinition.categoryPath)-$definitionValuedefinitionDisplayName" -replace '\<|\>|:|"|/|\\|\||\?|\*', "_"
+                    $filename = Format-String -inputString "$($DefinitionValuedefinition.categoryPath)-$definitionValuedefinitionDisplayName"
                     $outdef | ConvertTo-Json -Depth 10 | Out-File -FilePath "$($paths.admx)\$($folderName)\$filename.json" -Encoding ascii
                     $tmp = @{ }
                     $tmp.jsonResult = Remove-NullProperties -InputObject $outdef | ConvertTo-Json -Depth 20
@@ -108,9 +104,11 @@ function Get-IntuneConfig {
         #endregion
         #region AutoPilot
         if ($autoPilot) {
+            Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
+            Write-Host " AutoPilot Policies           " -NoNewline -ForegroundColor Green
             "`n## AutoPilot Policies`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($a in $autoPilot) {
-                Format-Policy -policy $a -markdownReport $markdownReport -outFile "$($paths.autopilotPath)\$($a.displayName)`.json"
+                Format-Policy -policy $a -markdownReport $markdownReport -outFile "$($paths.autopilotPath)\$(Format-String -inputString $a.displayName)`.json"
                 Format-Assignment -policy $a -markdownReport $markdownReport
 
             }
@@ -119,9 +117,11 @@ function Get-IntuneConfig {
         #endregion
         #region Compliance
         if ($deviceCompliance) {
+            Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
+            Write-Host " Device Compliance Policies   " -NoNewline -ForegroundColor Green
             "`n## Device Compliance Policies`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($d in $deviceCompliance) {
-                Format-Policy -policy $d -markdownReport $markdownReport -outFile "$($paths.compliancePath)\$($d.displayName)`.json"
+                Format-Policy -policy $d -markdownReport $markdownReport -outFile "$($paths.compliancePath)\$(Format-String -inputString $d.displayName)`.json"
                 Format-Assignment -policy $d -markdownReport $markdownReport
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
@@ -129,9 +129,13 @@ function Get-IntuneConfig {
         #endregion
         #region Configuration
         if ($deviceConfiguration) {
-            "## Device Configuration Policies`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+            Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
+            Write-Host " Device Configuration Policies" -NoNewline -ForegroundColor Green
+            "`n## Device Configuration Policies`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($d in $deviceConfiguration) {
-                Format-Policy -policy $d -markdownReport $markdownReport -outFile "$($paths.configurationPath)\$($d.displayName)`.json"
+                $displayName = $null
+                $displayName = $d.displayName -replace '\[', '(' -replace '\]', ')'
+                Format-Policy -policy $d -markdownReport $markdownReport -outFile "$($paths.configurationPath)\$(Format-String -inputString $d.displayName)`.json"
                 Format-Assignment -policy $d -markdownReport $markdownReport
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
@@ -139,9 +143,11 @@ function Get-IntuneConfig {
         #endregion
         #region Enrollment Status Page
         if ($enrollmentStatus) {
+            Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
+            Write-Host " Enrollment Status Policies   " -NoNewline -ForegroundColor Green
             "`n## Enrollment Status Policy`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($e in $enrollmentStatus) {
-                Format-Policy -policy $e -markdownReport $markdownReport -outFile "$($paths.esp)\$($e.displayName)`.json"
+                Format-Policy -policy $e -markdownReport $markdownReport -outFile "$($paths.esp)\$(Format-String -inputString $e.displayName)`.json"
                 Format-Assignment -policy $e -markdownReport $markdownReport
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
@@ -149,17 +155,21 @@ function Get-IntuneConfig {
         #endregion
         #region Scripts
         if ($scripts) {
+            Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
+            Write-Host " PowerShell Scripts           " -NoNewline -ForegroundColor Green
             "`n## PowerShell Scripts`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($s in $scripts) {
+                $displayName = $null
+                $displayName = Format-String -inputString $s.displayName
                 #store the script contents locally
                 New-Item "$($paths.scriptPath)\$($s.displayName)" -ItemType Directory -Force | Out-Null
                 [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String("$($s.scriptContent)")) |
-                Out-File -FilePath "$($paths.scriptPath)\$($s.displayName)\$($s.displayName)`.ps1" -Encoding ascii -Force
+                Out-File -FilePath "$($paths.scriptPath)\$displayName\$displayName`.ps1" -Encoding ascii -Force
 
                 $fpParam = @{
                     policy         = $($s | Select-Object displayName, description, runAsAccount, enforceSignatureCheck, fileName, runAs32Bit, '*@odata*', assignments)
                     markdownReport = $markdownReport
-                    outFile        = "$($paths.scriptPath)\$($s.displayName)\$($s.displayName)`.json"
+                    outFile        = "$($paths.scriptPath)\$displayName\$displayName`.json"
                 }
                 Format-Policy @fpParam
                 Format-Assignment -policy $s -markdownReport $markdownReport
@@ -169,9 +179,11 @@ function Get-IntuneConfig {
         #endregion
         #region Office 365 Applications
         if ($office365) {
+            Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
+            Write-Host " Office 365                   " -NoNewline -ForegroundColor Green
             "`n## Office 365 Configuration`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($o in $office365) {
-                Format-Policy -policy $o -markdownReport $markdownReport -outFile "$($paths.o365)\$($o.displayName)`.json"
+                Format-Policy -policy $o -markdownReport $markdownReport -outFile "$($paths.o365)\$(Format-String -inputString $o.displayName)`.json"
                 Format-Assignment -policy $o -markdownReport $markdownReport
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
@@ -179,9 +191,11 @@ function Get-IntuneConfig {
         #endregion
         #region win32 Applications
         if ($win32Apps) {
+            Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
+            Write-Host " Win32 Applications           " -NoNewline -ForegroundColor Green
             "`n## Win32 Applications`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($a in $win32Apps) {
-                Format-Policy -policy $a -markdownReport $markdownReport -outFile "$($paths.apps)\$($a.displayName)`.json"
+                Format-Policy -policy $a -markdownReport $markdownReport -outFile "$($paths.apps)\$(Format-String -inputString $a.displayName)`.json"
                 Format-Assignment -policy $a -markdownReport $markdownReport
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
@@ -191,5 +205,10 @@ function Get-IntuneConfig {
     catch {
         Write-Warning $_.Exception.Message
     }
-
+    finally {
+        if (Test-Path $markdownReport -ErrorAction SilentlyContinue) {
+            Write-Host "`rReport Generated:" -NoNewline -ForegroundColor Green
+            Write-Host " $markdownReport`n" -ForegroundColor Yellow
+        }
+    }
 }
