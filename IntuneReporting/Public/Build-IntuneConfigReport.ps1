@@ -162,7 +162,7 @@ function Build-IntuneConfigReport {
                 $displayName = $null
                 $displayName = Format-String -inputString $s.displayName
                 #store the script contents locally
-                New-Item "$($paths.scriptPath)\$($s.displayName)" -ItemType Directory -Force | Out-Null
+                New-Item "$($paths.scriptPath)\$displayName" -ItemType Directory -Force | Out-Null
                 [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String("$($s.scriptContent)")) |
                 Out-File -FilePath "$($paths.scriptPath)\$displayName\$displayName`.ps1" -Encoding ascii -Force
 
