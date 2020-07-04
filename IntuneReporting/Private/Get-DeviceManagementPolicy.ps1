@@ -2,16 +2,17 @@ Function Get-DeviceManagementPolicy {
     [cmdletbinding()]
     param
     (
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $true)]
         $authToken,
 
-        [Parameter(Mandatory)]
-        [ValidateSet('ADMX', 'AutoPilot', 'Compliance', 'Configuration', 'EnrollmentStatus', 'Script')]
+        [Parameter(Mandatory = $true)]
+        [ValidateSet('ADMX', 'AutoPilot', 'Compliance', 'Configuration','EndpointSecurity', 'EnrollmentStatus', 'Script')]
         [string]$managementType
 
     )
     $itemType = "$managementType Policies"
     $filter = $null
+    $expand = '?$expand=Assignments'
     switch ($managementType) {
         "ADMX" {
             $graphEndpoint = "deviceManagement/groupPolicyConfigurations"
@@ -30,6 +31,11 @@ Function Get-DeviceManagementPolicy {
             $graphEndpoint = "deviceManagement/deviceConfigurations"
             break
         }
+        "EndpointSecurity" {
+            $graphEndpoint = "deviceManagement/intents"
+            $expand = '?$expand=Assignments,Settings($select=id,definitionId,valueJson)'
+            break
+        }
         "EnrollmentStatus" {
             $graphEndpoint = "deviceManagement/deviceEnrollmentConfigurations"
             $filter = "?`$filter=isOf('microsoft.graph.windows10EnrollmentCompletionPageConfiguration')"
@@ -46,7 +52,7 @@ Function Get-DeviceManagementPolicy {
     $uri = "https://graph.microsoft.com/$graphApiVersion/$($graphEndpoint)"
     try {
         $response = (Invoke-RestMethod -Method Get -Uri "$uri$filter" -Headers $authToken -ContentType "application/json").value | ForEach-Object {
-            Invoke-RestMethod -Method Get -Uri "https://graph.microsoft.com/$graphApiVersion/$($graphEndpoint)/$($_.id)?`$expand=Assignments" -Headers $authToken -ContentType "application/json"
+            Invoke-RestMethod -Method Get -Uri "$uri/$($_.id)$expand" -Headers $authToken -ContentType "application/json"
         }
         Write-Host "$itemType`: " -NoNewline -ForegroundColor Cyan
         write-host "$($response.count) items found." -ForegroundColor Green

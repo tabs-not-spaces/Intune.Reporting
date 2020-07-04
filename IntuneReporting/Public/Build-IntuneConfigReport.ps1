@@ -1,24 +1,18 @@
 function Build-IntuneConfigReport {
     [cmdletbinding()]
     param (
-        [parameter(mandatory = $true)]
-        [System.Net.Mail.MailAddress]$adminEmail,
-
-        [Parameter(mandatory = $false)]
-        [System.Uri]$tenantId,
+        [Parameter(mandatory = $true)]
+        [System.Uri]$TenantId,
 
         [Parameter(mandatory = $true)]
-        [System.IO.FileInfo]$outputFolder
+        [System.IO.FileInfo]$OutputFolder
     )
     try {
-        if (!($tenantId)) {
-            $tenantId = $adminEmail.Host
-        }
         #region authentication
         if (!($PSVersionTable.PSEdition -eq 'core')) {
             throw "Needs to be run in PWSH 7."
         }
-        $auth = Get-MsalToken -ClientId $script:applicationId -TenantId $tenantId -DeviceCode
+        $auth = Get-MsalToken -ClientId $script:applicationId -tenantId $TenantId
         $authToken = @{
             'Content-Type'  = 'application/json'
             'Authorization' = $auth.CreateAuthorizationHeader()
@@ -28,14 +22,15 @@ function Build-IntuneConfigReport {
         #region configuration
         $outputPath = "$outputFolder\$tenantId"
         $paths = @{
-            configurationPath = "$outputPath\config-profiles"
-            compliancePath    = "$outputPath\compliance-policies"
-            scriptPath        = "$outputPath\scripts"
-            autopilotPath     = "$outputPath\autopilot"
-            esp               = "$outputPath\esp"
             admx              = "$outputPath\admx"
-            o365              = "$outputPath\o365"
             apps              = "$outputPath\apps"
+            autopilotPath     = "$outputPath\autopilot"
+            compliancePath    = "$outputPath\compliance-policies"
+            configurationPath = "$outputPath\config-profiles"
+            endpointSecurity  = "$outputPath\endpoint-security-policies"
+            esp               = "$outputPath\esp"
+            o365              = "$outputPath\o365"
+            scriptPath        = "$outputPath\scripts"
         }
         $markdownReport = "$outputPath\$tenantId`_report.md"
         #endregion
@@ -60,6 +55,7 @@ function Build-IntuneConfigReport {
         $autoPilot = Get-DeviceManagementPolicy -authToken $authToken -managementType AutoPilot | Select-Object * -ExcludeProperty value
         $deviceCompliance = Get-DeviceManagementPolicy -authToken $authToken -managementType Compliance | Select-Object * -ExcludeProperty value
         $deviceConfiguration = Get-DeviceManagementPolicy -authToken $authToken -managementType Configuration | Select-Object * -ExcludeProperty value
+        $endpointSecurityPolicy = Get-DeviceManagementPolicy -authToken $authToken -managementType EndpointSecurity | Select-Object * -ExcludeProperty value
         $enrollmentStatus = Get-DeviceManagementPolicy -authToken $authToken -managementType EnrollmentStatus | Select-Object * -ExcludeProperty value
         $scripts = Get-DeviceManagementPolicy -authToken $authToken -managementType Script | Select-Object * -ExcludeProperty value
         $office365 = Get-MobileAppConfigurations -authToken $authToken -mobileAppType office365
@@ -137,6 +133,18 @@ function Build-IntuneConfigReport {
                 $displayName = $d.displayName -replace '\[', '(' -replace '\]', ')'
                 Format-Policy -policy $d -markdownReport $markdownReport -outFile "$($paths.configurationPath)\$(Format-String -inputString $d.displayName)`.json"
                 Format-Assignment -policy $d -markdownReport $markdownReport
+            }
+            "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+        }
+        #endregion
+        #region Endpoint Security Policies
+        if ($endpointSecurityPolicy) {
+            Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
+            Write-Host " Endpoint Security Policies   " -NoNewline -ForegroundColor Green
+            "`n## Endpoint Security Policy`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+            foreach ($e in $endpointSecurityPolicy) {
+                Format-Policy -policy $e -markdownReport $markdownReport -outFile "$($paths.esp)\$(Format-String -inputString $e.displayName)`.json"
+                Format-Assignment -policy $e -markdownReport $markdownReport
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
