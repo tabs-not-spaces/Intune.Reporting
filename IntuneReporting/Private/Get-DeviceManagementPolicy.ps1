@@ -48,7 +48,7 @@ Function Get-DeviceManagementPolicy {
         }
     }
     $graphApiVersion = "Beta"
-    Write-Verbose "Resource: $graphEndpoint"
+    Write-Verbose "`nResource: $graphEndpoint"
     $uri = "https://graph.microsoft.com/$graphApiVersion/$($graphEndpoint)"
     try {
         $response = (Invoke-RestMethod -Method Get -Uri "$uri$filter" -Headers $authToken -ContentType "application/json").value | ForEach-Object {

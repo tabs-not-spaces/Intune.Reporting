@@ -10,7 +10,7 @@ function Get-EndpointSecurityPolicyDetails {
     try {
         $graphEndpoint = "deviceManagement/templates"
         $graphApiVersion = "Beta"
-        Write-Verbose "Resource: $graphEndpoint"
+        Write-Verbose "`nResource: $graphEndpoint"
         $uri = "https://graph.microsoft.com/$graphApiVersion/$($graphEndpoint)"
         foreach ($e in $ESPolicies) {
             $sd = (Invoke-RestMethod -Method Get -Uri "$uri/$($e.templateId)/categories?`$expand=settingDefinitions" -Headers $AuthToken -ContentType "application/json").value

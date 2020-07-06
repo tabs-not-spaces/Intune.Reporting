@@ -12,7 +12,7 @@ function Build-IntuneConfigReport {
         if (!($PSVersionTable.PSEdition -eq 'core')) {
             throw "Needs to be run in PWSH 7."
         }
-        $auth = Get-MsalToken -ClientId $script:applicationId -tenantId $TenantId
+        $auth = Get-MsalToken -ClientId $script:applicationId -TenantId $TenantId
         $authToken = @{
             'Content-Type'  = 'application/json'
             'Authorization' = $auth.CreateAuthorizationHeader()
@@ -143,8 +143,35 @@ function Build-IntuneConfigReport {
             Write-Host " Endpoint Security Policies   " -NoNewline -ForegroundColor Green
             "`n## Endpoint Security Policy`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($e in $endpointSecurityPolicy) {
-                Format-Policy -policy $e -markdownReport $markdownReport -outFile "$($paths.esp)\$(Format-String -inputString $e.displayName)`.json"
-                Format-Assignment -policy $e -markdownReport $markdownReport
+                "`n### $($e.displayName)`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $folderName = Format-String -inputString $e.displayName
+                New-Item "$($paths.endpointSecurity)\$folderName" -ItemType Directory -Force | Out-Null
+                # store template
+                $e | Select-Object templateId, displayName, description | ConvertTo-Json -Depth 10 | Out-File -FilePath "$($paths.endpointSecurity)\$($folderName)\template.json" -Encoding ascii
+                #store intents
+                $intents = $($e.settings | Select-Object '*@odata*', definitionId, ValueJson | ConvertTo-Json -Depth 10)
+                @{
+                    "settings" = $intents
+                } | ConvertTo-Json | Out-File -FilePath "$($paths.endpointSecurity)\$($folderName)\intent.json" -Encoding ascii
+                #expand setting values
+                Get-EndpointSecurityPolicyDetails -AuthToken $authToken -ESPolicies $e
+                foreach ($s in $e.settings) {
+                    if (!($s.valueJson -eq '"notConfigured"' -or $s.valueJson -eq 'null')) {
+                        Write-Host "$($s.DisplayName): $($s.valueJson)"
+                        $tmp = @{}
+                        if ((($s.valueJson | ConvertFrom-Json).psobject.members | Where-Object { $_.membertype -eq "NoteProperty" }).count -eq 0) {
+                            $tmp.jsonResult = $s | Select-Object @{ Name = $s.DisplayName; Expression = { $_.valueJson | ConvertFrom-Json } } | ConvertTo-Json -Depth 10
+                        }
+                        else {
+                            $tmp.jsonResult = $s | Select-Object @{ Name = 'Value'; Expression = { $_.valueJson | ConvertFrom-Json } } | ConvertTo-Json -Depth 10
+                        }
+                        $tmp.mdResult = (Convert-JsonToMarkdown -json ($tmp.jsonResult) -title "#### $($s.DisplayName)") -replace 'Value\.'
+                        $tmp.mdResult | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                    }
+                    else {
+                        Write-Warning "$($s.DisplayName): $($s.valueJson)"
+                    }
+                }
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
