@@ -41,7 +41,7 @@ Import-Module .\IntuneReporting
 There's only one function publically exposed - because I'm nice like that.
 
 ``` PowerShell
-Get-IntuneConfig -adminEmail "user@clienttenant.com" -tenantId "clienttenant.com" -outputFolder "C:\path\to\report\folder"
+Build-IntuneConfigReport -adminEmail "user@clienttenant.com" -tenantId "clienttenant.com" -outputFolder "C:\path\to\report\folder"
 ```
 
 Raw JSON output from the Intune environment will be sent to the **outputFolder** directory.
