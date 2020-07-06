@@ -22,7 +22,7 @@ function Get-MobileAppConfigurations {
     }
     $graphApiVersion = "Beta"
     $graphEndpoint = "deviceappmanagement/mobileapps?`$filter=isOf('$odata')"
-    Write-Verbose "Resource: $graphEndpoint"
+    Write-Verbose "`nResource: $graphEndpoint"
     $uri = "https://graph.microsoft.com/$graphApiVersion/$($graphEndpoint)"
     try {
         $apps = Invoke-RestMethod -Method Get -Uri $uri -ContentType 'Application/Json' -Headers $authToken | Select-Object -ExpandProperty value
