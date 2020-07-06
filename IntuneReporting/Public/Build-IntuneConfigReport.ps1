@@ -157,7 +157,7 @@ function Build-IntuneConfigReport {
                 Get-EndpointSecurityPolicyDetails -AuthToken $authToken -ESPolicies $e
                 foreach ($s in $e.settings) {
                     if (!($s.valueJson -eq '"notConfigured"' -or $s.valueJson -eq 'null')) {
-                        Write-Host "$($s.DisplayName): $($s.valueJson)"
+                        Write-Verbose "$($s.DisplayName): $($s.valueJson)"
                         $tmp = @{}
                         if ((($s.valueJson | ConvertFrom-Json).psobject.members | Where-Object { $_.membertype -eq "NoteProperty" }).count -eq 0) {
                             $tmp.jsonResult = $s | Select-Object @{ Name = $s.DisplayName; Expression = { $_.valueJson | ConvertFrom-Json } } | ConvertTo-Json -Depth 10
@@ -169,7 +169,7 @@ function Build-IntuneConfigReport {
                         $tmp.mdResult | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                     }
                     else {
-                        Write-Warning "$($s.DisplayName): $($s.valueJson)"
+                        Write-Verbose "$($s.DisplayName): $($s.valueJson)"
                     }
                 }
             }
