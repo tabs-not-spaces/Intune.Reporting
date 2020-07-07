@@ -2,14 +2,14 @@ function Format-Assignment {
     [cmdletbinding()]
     param (
         [Parameter(Mandatory = $true)]
-        [object]$policy,
+        [object]$Policy,
 
         [Parameter(Mandatory = $true)]
-        [string]$markdownReport
+        [string]$MarkdownReport
     )
     try {
 
-        $assignments = foreach ($p in $policy.assignments) {
+        $assignments = foreach ($p in $Policy.assignments) {
             $a = @{}
             $a.displayName = $p.target.groupId ? $(Get-GroupFromId -id $p.target.groupId -authToken $authToken | Select-Object -ExpandProperty displayName) : '-'
             $a.intent = $p.intent ?? '-'
@@ -41,7 +41,7 @@ function Format-Assignment {
 |-----------|-----------|-----------|
 $($assignments ?? "| $null | $null | $null |`n")
 "@
-        $table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+        $table | Out-File $MarkdownReport -Encoding ascii -NoNewline -Append
     }
     catch {
         Write-Warning $_.Exception.Message

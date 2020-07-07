@@ -3,21 +3,20 @@ Function Get-DeviceManagementPolicy {
     param
     (
         [Parameter(Mandatory = $true)]
-        $authToken,
+        $AuthToken,
 
         [Parameter(Mandatory = $true)]
         [ValidateSet('ADMX', 'AutoPilot', 'Compliance', 'Configuration','EndpointSecurity', 'EnrollmentStatus', 'Script')]
-        [string]$managementType
+        [string]$ManagementType
 
     )
-    $itemType = "$managementType Policies"
+    $itemType = "$ManagementType Policies"
     $filter = $null
     $expand = '?$expand=Assignments'
-    switch ($managementType) {
+    switch ($ManagementType) {
         "ADMX" {
             $graphEndpoint = "deviceManagement/groupPolicyConfigurations"
             break
-
         }
         "AutoPilot" {
             $graphEndpoint = "deviceManagement/windowsAutopilotDeploymentProfiles"
@@ -51,8 +50,8 @@ Function Get-DeviceManagementPolicy {
     Write-Verbose "`nResource: $graphEndpoint"
     $uri = "https://graph.microsoft.com/$graphApiVersion/$($graphEndpoint)"
     try {
-        $response = (Invoke-RestMethod -Method Get -Uri "$uri$filter" -Headers $authToken -ContentType "application/json").value | ForEach-Object {
-            Invoke-RestMethod -Method Get -Uri "$uri/$($_.id)$expand" -Headers $authToken -ContentType "application/json"
+        $response = (Invoke-RestMethod -Method Get -Uri "$uri$filter" -Headers $AuthToken -ContentType "application/json").value | ForEach-Object {
+            Invoke-RestMethod -Method Get -Uri "$uri/$($_.id)$expand" -Headers $AuthToken -ContentType "application/json"
         }
         Write-Host "$itemType`: " -NoNewline -ForegroundColor Cyan
         write-host "$($response.count) items found." -ForegroundColor Green
