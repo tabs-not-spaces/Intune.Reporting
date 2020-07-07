@@ -14,6 +14,8 @@ function Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues {
     Param (
         [Parameter(Mandatory = $true)]
         [string]$groupPolicyConfigurationID,
+
+        [Parameter(Mandatory = $false)]
         [string]$GroupPolicyConfigurationsDefinitionValueID
     )
     $graphApiVersion = "Beta"

@@ -14,6 +14,7 @@ function Get-GroupPolicyConfigurationsDefinitionValuesDefinition {
     Param (
         [Parameter(Mandatory = $true)]
         [string]$groupPolicyConfigurationID,
+
         [Parameter(Mandatory = $true)]
         [string]$GroupPolicyConfigurationsDefinitionValueID
     )
