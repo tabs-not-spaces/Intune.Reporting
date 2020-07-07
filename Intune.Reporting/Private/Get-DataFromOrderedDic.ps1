@@ -3,7 +3,7 @@ function Get-DataFromOrderedDic {
         [parameter(Mandatory = $true)]
         $OrderedDic,
 
-        [parameter(Mandatory = $true)]
+        [parameter(Mandatory = $false)]
         $Parent
     )
     $a = $OrderedDic
