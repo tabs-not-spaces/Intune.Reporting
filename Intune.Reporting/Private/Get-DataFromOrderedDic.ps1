@@ -1,15 +1,18 @@
 function Get-DataFromOrderedDic {
     param(
-        $orderedDic,
-        $parent
+        [parameter(Mandatory = $true)]
+        $OrderedDic,
+
+        [parameter(Mandatory = $true)]
+        $Parent
     )
-    $a = $orderedDic
+    $a = $OrderedDic
     $vars = $a.Keys
     foreach ($x in $vars) {
         if (($a.$x | Get-Member -ErrorAction SilentlyContinue).TypeName -eq "System.Collections.Specialized.OrderedDictionary") {
             foreach ($y in $a.$x) {
-                if ($parent) {
-                    Get-DataFromOrderedDic $y "$($parent).$x"
+                if ($Parent) {
+                    Get-DataFromOrderedDic $y "$($Parent).$x"
                 }
                 else {
                     Get-DataFromOrderedDic $y $x
@@ -17,9 +20,9 @@ function Get-DataFromOrderedDic {
             }
         }
         else {
-            if ($parent) {
+            if ($Parent) {
                 if ($($a.$x) -notin $null, " ", "notConfigured") {
-                    "| $($parent).$($x) | $($a.$x) |`n"
+                    "| $($Parent).$($x) | $($a.$x) |`n"
                 }
             }
             else {

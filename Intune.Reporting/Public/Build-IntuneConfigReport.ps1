@@ -2,7 +2,7 @@ function Build-IntuneConfigReport {
     [cmdletbinding()]
     param (
         [Parameter(mandatory = $true)]
-        [System.Uri]$TenantId,
+        [System.Uri]$Tenant,
 
         [Parameter(mandatory = $true)]
         [System.IO.FileInfo]$OutputFolder
@@ -12,30 +12,44 @@ function Build-IntuneConfigReport {
         if (!($PSVersionTable.PSEdition -eq 'core')) {
             throw "Needs to be run in PWSH 7."
         }
-        $auth = Get-MsalToken -ClientId $script:applicationId -TenantId $TenantId
+        $auth = Get-MsalToken -ClientId 'd1ddf0e4-d672-4dae-b554-9d5bdfd93547' -Tenant $Tenant -deviceCode
         $authToken = @{
             'Content-Type'  = 'application/json'
             'Authorization' = $auth.CreateAuthorizationHeader()
             'ExpiresOn'     = $($auth.ExpiresOn.LocalDateTime)
         }
         #endregion
-        #region configuration
-        $outputPath = "$outputFolder\$tenantId"
-        $paths = @{
-            admx              = "$outputPath\admx"
-            apps              = "$outputPath\apps"
-            autopilotPath     = "$outputPath\autopilot"
-            compliancePath    = "$outputPath\compliance-policies"
-            configurationPath = "$outputPath\config-profiles"
-            endpointSecurity  = "$outputPath\endpoint-security-policies"
-            esp               = "$outputPath\esp"
-            o365              = "$outputPath\o365"
-            scriptPath        = "$outputPath\scripts"
+        #region Grab the endpoint data
+        Write-Host "Grabbing configuration.. ☕" -ForegroundColor Yellow
+        $config = @{
+            admxConfiguration      = Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType ADMX
+            autoPilot              = Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType AutoPilot
+            deviceCompliance       = Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Compliance
+            deviceConfiguration    = Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Configuration
+            endpointSecurityPolicy = Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EndpointSecurity
+            enrollmentStatus       = Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EnrollmentStatus
+            scripts                = Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Script
+            office365              = Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Office365
+            win32Apps              = Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Win32
         }
-        $markdownReport = "$outputPath\$tenantId`_report.md"
+        #endregion
+        #region configuration
+        $outputPath = "$outputFolder\$Tenant"
+        $paths = @{
+            admx              = (($config.admxConfiguration) ? "$outputPath\admx" : $null)
+            apps              = (($config.autoPilot) ? "$outputPath\apps" : $null)
+            autopilotPath     = (($config.deviceCompliance) ? "$outputPath\autopilot" : $null)
+            compliancePath    = (($config.deviceConfiguration) ? "$outputPath\compliance-policies" : $null)
+            configurationPath = (($config.endpointSecurityPolicy) ? "$outputPath\config-profiles" : $null)
+            endpointSecurity  = (($config.enrollmentStatus) ? "$outputPath\endpoint-security-policies" : $null)
+            esp               = (($config.scripts) ? "$outputPath\esp" : $null)
+            o365              = (($config.office365) ? "$outputPath\o365" : $null)
+            scriptPath        = (($config.win32Apps) ? "$outputPath\scripts" : $null)
+        }
+        $markdownReport = "$outputPath\$Tenant`_report.md"
         #endregion
         #region prepare folder structure
-        foreach ($p in $paths.values) {
+        foreach ($p in ($paths.values | Where-Object { $null -ne $_ })) {
             if (!(Test-Path $p)) {
                 New-Item -Path $p -ItemType Directory -Force | Out-Null
             }
@@ -50,32 +64,19 @@ function Build-IntuneConfigReport {
         #endregion
         #region Generate Title of report
         #endregion
-        #region Grab the endpoint data
-        $admxConfiguration = Get-DeviceManagementPolicy -authToken $authToken -managementType ADMX | Select-Object * -ExcludeProperty value
-        $autoPilot = Get-DeviceManagementPolicy -authToken $authToken -managementType AutoPilot | Select-Object * -ExcludeProperty value
-        $deviceCompliance = Get-DeviceManagementPolicy -authToken $authToken -managementType Compliance | Select-Object * -ExcludeProperty value
-        $deviceConfiguration = Get-DeviceManagementPolicy -authToken $authToken -managementType Configuration | Select-Object * -ExcludeProperty value
-        $endpointSecurityPolicy = Get-DeviceManagementPolicy -authToken $authToken -managementType EndpointSecurity | Select-Object * -ExcludeProperty value
-        $enrollmentStatus = Get-DeviceManagementPolicy -authToken $authToken -managementType EnrollmentStatus | Select-Object * -ExcludeProperty value
-        $scripts = Get-DeviceManagementPolicy -authToken $authToken -managementType Script | Select-Object * -ExcludeProperty value
-        $office365 = Get-MobileAppConfigurations -authToken $authToken -mobileAppType office365
-        $win32Apps = Get-MobileAppConfigurations -authToken $authToken -mobileAppType win32
-        #endregion
         #region ADMX
-        if ($admxConfiguration) {
+        if ($config.admxConfiguration) {
             Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
             Write-Host " ADMX Policies                " -NoNewline -ForegroundColor Green
             "## ADMX Policies`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-            foreach ($gpc in $admxConfiguration) {
+            foreach ($gpc in $config.admxConfiguration) {
                 "`n### $($gpc.displayName)`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 $folderName = Format-String -inputString $gpc.displayName
                 New-Item "$($paths.admx)\$folderName" -ItemType Directory -Force | Out-Null
                 $gpcDefinitionValues = Get-GroupPolicyConfigurationsDefinitionValues -GroupPolicyConfigurationID $gpc.id
                 foreach ($v in $gpcDefinitionValues) {
                     $definitionValuedefinition = Get-GroupPolicyConfigurationsDefinitionValuesdefinition -GroupPolicyConfigurationID $gpc.id -GroupPolicyConfigurationsDefinitionValueID $v.id
-                    #$definitionValuedefinitionID = $definitionValuedefinition.id
                     $definitionValuedefinitionDisplayName = $definitionValuedefinition.displayName
-                    #$groupPolicyDefinitionsPresentations = Get-GroupPolicyDefinitionsPresentations -groupPolicyDefinitionsID $gpc.id -GroupPolicyConfigurationsDefinitionValueID $v.id
                     $definitionValuePresentationValues = Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues -GroupPolicyConfigurationID $gpc.id -GroupPolicyConfigurationsDefinitionValueID $v.id
                     $outdef = [PSCustomObject]@{
                         enabled = $($v.enabled.tostring().tolower())
@@ -99,11 +100,11 @@ function Build-IntuneConfigReport {
         }
         #endregion
         #region AutoPilot
-        if ($autoPilot) {
+        if ($config.autoPilot) {
             Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
             Write-Host " AutoPilot Policies           " -NoNewline -ForegroundColor Green
             "`n## AutoPilot Policies`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-            foreach ($a in $autoPilot) {
+            foreach ($a in $config.autoPilot) {
                 Format-Policy -policy $a -markdownReport $markdownReport -outFile "$($paths.autopilotPath)\$(Format-String -inputString $a.displayName)`.json"
                 Format-Assignment -policy $a -markdownReport $markdownReport
 
@@ -112,11 +113,11 @@ function Build-IntuneConfigReport {
         }
         #endregion
         #region Compliance
-        if ($deviceCompliance) {
+        if ($config.deviceCompliance) {
             Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
             Write-Host " Device Compliance Policies   " -NoNewline -ForegroundColor Green
             "`n## Device Compliance Policies`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-            foreach ($d in $deviceCompliance) {
+            foreach ($d in $config.deviceCompliance) {
                 Format-Policy -policy $d -markdownReport $markdownReport -outFile "$($paths.compliancePath)\$(Format-String -inputString $d.displayName)`.json"
                 Format-Assignment -policy $d -markdownReport $markdownReport
             }
@@ -124,11 +125,11 @@ function Build-IntuneConfigReport {
         }
         #endregion
         #region Configuration
-        if ($deviceConfiguration) {
+        if ($config.deviceConfiguration) {
             Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
             Write-Host " Device Configuration Policies" -NoNewline -ForegroundColor Green
             "`n## Device Configuration Policies`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-            foreach ($d in $deviceConfiguration) {
+            foreach ($d in $config.deviceConfiguration) {
                 $displayName = $null
                 $displayName = $d.displayName -replace '\[', '(' -replace '\]', ')'
                 Format-Policy -policy $d -markdownReport $markdownReport -outFile "$($paths.configurationPath)\$(Format-String -inputString $d.displayName)`.json"
@@ -138,11 +139,11 @@ function Build-IntuneConfigReport {
         }
         #endregion
         #region Endpoint Security Policies
-        if ($endpointSecurityPolicy) {
+        if ($config.endpointSecurityPolicy) {
             Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
             Write-Host " Endpoint Security Policies   " -NoNewline -ForegroundColor Green
             "`n## Endpoint Security Policy`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-            foreach ($e in $endpointSecurityPolicy) {
+            foreach ($e in $config.endpointSecurityPolicy) {
                 "`n### $($e.displayName)`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 $folderName = Format-String -inputString $e.displayName
                 New-Item "$($paths.endpointSecurity)\$folderName" -ItemType Directory -Force | Out-Null
@@ -177,11 +178,11 @@ function Build-IntuneConfigReport {
         }
         #endregion
         #region Enrollment Status Page
-        if ($enrollmentStatus) {
+        if ($config.enrollmentStatus) {
             Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
             Write-Host " Enrollment Status Policies   " -NoNewline -ForegroundColor Green
             "`n## Enrollment Status Policy`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-            foreach ($e in $enrollmentStatus) {
+            foreach ($e in $config.enrollmentStatus) {
                 Format-Policy -policy $e -markdownReport $markdownReport -outFile "$($paths.esp)\$(Format-String -inputString $e.displayName)`.json"
                 Format-Assignment -policy $e -markdownReport $markdownReport
             }
@@ -189,11 +190,11 @@ function Build-IntuneConfigReport {
         }
         #endregion
         #region Scripts
-        if ($scripts) {
+        if ($config.scripts) {
             Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
             Write-Host " PowerShell Scripts           " -NoNewline -ForegroundColor Green
             "`n## PowerShell Scripts`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-            foreach ($s in $scripts) {
+            foreach ($s in $config.scripts) {
                 $displayName = $null
                 $displayName = Format-String -inputString $s.displayName
                 #store the script contents locally
@@ -213,11 +214,11 @@ function Build-IntuneConfigReport {
         }
         #endregion
         #region Office 365 Applications
-        if ($office365) {
+        if ($config.office365) {
             Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
             Write-Host " Office 365                   " -NoNewline -ForegroundColor Green
             "`n## Office 365 Configuration`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-            foreach ($o in $office365) {
+            foreach ($o in $config.office365) {
                 Format-Policy -policy $o -markdownReport $markdownReport -outFile "$($paths.o365)\$(Format-String -inputString $o.displayName)`.json"
                 Format-Assignment -policy $o -markdownReport $markdownReport
             }
@@ -225,11 +226,11 @@ function Build-IntuneConfigReport {
         }
         #endregion
         #region win32 Applications
-        if ($win32Apps) {
+        if ($config.win32Apps) {
             Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
             Write-Host " Win32 Applications           " -NoNewline -ForegroundColor Green
             "`n## Win32 Applications`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-            foreach ($a in $win32Apps) {
+            foreach ($a in $config.win32Apps) {
                 Format-Policy -policy $a -markdownReport $markdownReport -outFile "$($paths.apps)\$(Format-String -inputString $a.displayName)`.json"
                 Format-Assignment -policy $a -markdownReport $markdownReport
             }
@@ -243,7 +244,7 @@ function Build-IntuneConfigReport {
     finally {
         if (Test-Path $markdownReport -ErrorAction SilentlyContinue) {
             Write-Host "`rReport Generated:" -NoNewline -ForegroundColor Green
-            Write-Host " $markdownReport`n" -ForegroundColor Yellow
+            Write-Host " $markdownReport 🍻`n" -ForegroundColor Yellow
         }
     }
 }
