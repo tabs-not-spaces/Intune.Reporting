@@ -54,7 +54,7 @@ Function Get-DeviceManagementPolicy {
             Invoke-RestMethod -Method Get -Uri "$uri/$($_.id)$expand" -Headers $AuthToken -ContentType "application/json"
         }
         Write-Host "$itemType`: " -NoNewline -ForegroundColor Cyan
-        write-host "$($response.count) items found." -ForegroundColor Green
+        write-host "$($response.count) $(($response.count -eq 1) ? "item" : "items") found." -ForegroundColor Green
         return $response
     }
     catch {

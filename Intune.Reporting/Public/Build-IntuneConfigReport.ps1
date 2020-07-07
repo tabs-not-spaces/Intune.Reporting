@@ -5,14 +5,18 @@ function Build-IntuneConfigReport {
         [System.Uri]$Tenant,
 
         [Parameter(mandatory = $true)]
-        [System.IO.FileInfo]$OutputFolder
+        [System.IO.FileInfo]$OutputFolder,
+
+        [Parameter(mandatory = $false)]
+        [ValidateSet('admx','autopilot','deviceCompliance','deviceConfiguration','endpointSecurityPolicy','enrollmentStatus','scripts','office365','win32Apps')]
+        [string[]]$Filter
     )
     try {
         #region authentication
         if (!($PSVersionTable.PSEdition -eq 'core')) {
             throw "Needs to be run in PWSH 7."
         }
-        $auth = Get-MsalToken -ClientId 'd1ddf0e4-d672-4dae-b554-9d5bdfd93547' -Tenant $Tenant -deviceCode
+        $auth = Get-MsalToken -ClientId $script:applicationId -Tenant $Tenant
         $authToken = @{
             'Content-Type'  = 'application/json'
             'Authorization' = $auth.CreateAuthorizationHeader()
@@ -20,17 +24,20 @@ function Build-IntuneConfigReport {
         }
         #endregion
         #region Grab the endpoint data
+        if ($null -eq $Filter) {
+            $Filter = 'admx','autopilot','deviceCompliance','deviceConfiguration','endpointSecurityPolicy','enrollmentStatus','scripts','office365','win32Apps'
+        }
         Write-Host "Grabbing configuration.. ☕" -ForegroundColor Yellow
         $config = @{
-            admxConfiguration      = Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType ADMX
-            autoPilot              = Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType AutoPilot
-            deviceCompliance       = Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Compliance
-            deviceConfiguration    = Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Configuration
-            endpointSecurityPolicy = Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EndpointSecurity
-            enrollmentStatus       = Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EnrollmentStatus
-            scripts                = Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Script
-            office365              = Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Office365
-            win32Apps              = Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Win32
+            admxConfiguration      = ($Filter -contains "admx") ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType ADMX) : $null
+            autopilot              = ($Filter -contains "autopilot") ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType AutoPilot) : $null
+            deviceCompliance       = ($Filter -contains "deviceCompliance") ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Compliance) : $null
+            deviceConfiguration    = ($Filter -contains "deviceConfiguration") ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Configuration) : $null
+            endpointSecurityPolicy = ($Filter -contains "endpointSecurityPolicy") ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EndpointSecurity) : $null
+            enrollmentStatus       = ($Filter -contains "enrollmentStatus") ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EnrollmentStatus) : $null
+            scripts                = ($Filter -contains "scripts") ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Script) : $null
+            office365              = ($Filter -contains "office365") ? (Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Office365) : $null
+            win32Apps              = ($Filter -contains "win32Apps") ? (Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Win32) : $null
         }
         #endregion
         #region configuration

@@ -5,7 +5,7 @@ function Get-MobileAppConfigurations {
         [Parameter(Mandatory = $true)]
         $AuthToken,
 
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory = $true)]
         [ValidateSet('Office365', 'Win32')]
         [string]$MobileAppType
 
@@ -27,7 +27,7 @@ function Get-MobileAppConfigurations {
     try {
         $apps = Invoke-RestMethod -Method Get -Uri $uri -ContentType 'Application/Json' -Headers $AuthToken | Select-Object -ExpandProperty value
         Write-Host "$MobileAppType applications: " -NoNewline -ForegroundColor Cyan
-        Write-Host "$($apps.count) items found." -ForegroundColor Green
+        Write-Host "$($apps.count) $(($apps.count -eq 1) ? "item" : "items") found." -ForegroundColor Green
         $result = foreach ($a in $apps) {
             $ur = "https://graph.microsoft.com/beta/deviceappmanagement/mobileapps/$($a.id)?`$expand=Assignments"
             Invoke-RestMethod -Method Get -Uri $ur -Headers $AuthToken | Select-Object * -exclude LargeIcon
