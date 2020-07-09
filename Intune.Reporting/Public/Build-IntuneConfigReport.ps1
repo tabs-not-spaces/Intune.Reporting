@@ -16,7 +16,7 @@ function Build-IntuneConfigReport {
         if (!($PSVersionTable.PSEdition -eq 'core')) {
             throw "Needs to be run in PWSH 7."
         }
-        $auth = Get-MsalToken -ClientId $script:applicationId -Tenant $Tenant
+        $auth = Get-MsalToken -ClientId $script:applicationId -Tenant $Tenant -DeviceCode
         $authToken = @{
             'Content-Type'  = 'application/json'
             'Authorization' = $auth.CreateAuthorizationHeader()
@@ -25,33 +25,33 @@ function Build-IntuneConfigReport {
         #endregion
         #region Grab the endpoint data
         if ($null -eq $Filter) {
-            $Filter = 'admx','autopilot','deviceCompliance','deviceConfiguration','endpointSecurityPolicy','enrollmentStatus','scripts','office365','win32Apps'
+            [string[]]$Filter = 'all'
         }
         Write-Host "Grabbing configuration.. ☕" -ForegroundColor Yellow
         $config = @{
-            admxConfiguration      = ($Filter -contains "admx") ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType ADMX) : $null
-            autopilot              = ($Filter -contains "autopilot") ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType AutoPilot) : $null
-            deviceCompliance       = ($Filter -contains "deviceCompliance") ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Compliance) : $null
-            deviceConfiguration    = ($Filter -contains "deviceConfiguration") ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Configuration) : $null
-            endpointSecurityPolicy = ($Filter -contains "endpointSecurityPolicy") ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EndpointSecurity) : $null
-            enrollmentStatus       = ($Filter -contains "enrollmentStatus") ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EnrollmentStatus) : $null
-            scripts                = ($Filter -contains "scripts") ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Script) : $null
-            office365              = ($Filter -contains "office365") ? (Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Office365) : $null
-            win32Apps              = ($Filter -contains "win32Apps") ? (Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Win32) : $null
+            admxConfiguration      = $Filter -match "all|admx" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType ADMX) : $null
+            autopilot              = $Filter -match "all|autopilot" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType AutoPilot) : $null
+            deviceCompliance       = $Filter -match "all|deviceCompliance" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Compliance) : $null
+            deviceConfiguration    = $Filter -match "all|deviceConfiguration" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Configuration) : $null
+            endpointSecurityPolicy = $Filter -match "all|endpointSecurityPolicy" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EndpointSecurity) : $null
+            enrollmentStatus       = $Filter -match "all|enrollmentStatus" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EnrollmentStatus) : $null
+            scripts                = $Filter -match "all|scripts" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Script) : $null
+            office365              = $Filter -match "all|office365" ? (Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Office365) : $null
+            win32Apps              = $Filter -match "all|win32Apps" ? (Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Win32) : $null
         }
         #endregion
         #region configuration
         $outputPath = "$outputFolder\$Tenant"
         $paths = @{
             admx              = (($config.admxConfiguration) ? "$outputPath\admx" : $null)
-            apps              = (($config.autoPilot) ? "$outputPath\apps" : $null)
-            autopilotPath     = (($config.deviceCompliance) ? "$outputPath\autopilot" : $null)
-            compliancePath    = (($config.deviceConfiguration) ? "$outputPath\compliance-policies" : $null)
-            configurationPath = (($config.endpointSecurityPolicy) ? "$outputPath\config-profiles" : $null)
-            endpointSecurity  = (($config.enrollmentStatus) ? "$outputPath\endpoint-security-policies" : $null)
-            esp               = (($config.scripts) ? "$outputPath\esp" : $null)
+            apps              = (($config.win32Apps) ? "$outputPath\apps" : $null)
+            autopilotPath     = (($config.autoPilot) ? "$outputPath\autopilot" : $null)
+            compliancePath    = (($config.deviceCompliance) ? "$outputPath\compliance-policies" : $null)
+            configurationPath = (($config.deviceConfiguration) ? "$outputPath\config-profiles" : $null)
+            endpointSecurity  = (($config.endpointSecurityPolicy) ? "$outputPath\endpoint-security-policies" : $null)
+            esp               = (($config.enrollmentStatus) ? "$outputPath\esp" : $null)
             o365              = (($config.office365) ? "$outputPath\o365" : $null)
-            scriptPath        = (($config.win32Apps) ? "$outputPath\scripts" : $null)
+            scriptPath        = (($config.scripts) ? "$outputPath\scripts" : $null)
         }
         $markdownReport = "$outputPath\$Tenant`_report.md"
         #endregion
@@ -101,7 +101,7 @@ function Build-IntuneConfigReport {
                     $tmp.mdResult = Convert-JsonToMarkdown -json ($tmp.jsonResult) -title "`n##### $($filename -replace '_', ' ')"
                     $tmp.mdResult | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 }
-                Format-Assignment -policy $gpc -markdownReport $markdownReport
+                Format-Assignment -policy $gpc | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -113,7 +113,7 @@ function Build-IntuneConfigReport {
             "`n## AutoPilot Policies`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($a in $config.autoPilot) {
                 Format-Policy -policy $a -markdownReport $markdownReport -outFile "$($paths.autopilotPath)\$(Format-String -inputString $a.displayName)`.json"
-                Format-Assignment -policy $a -markdownReport $markdownReport
+                Format-Assignment -policy $a | Out-File $markdownReport -Encoding ascii -NoNewline -Append
 
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
@@ -126,7 +126,7 @@ function Build-IntuneConfigReport {
             "`n## Device Compliance Policies`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($d in $config.deviceCompliance) {
                 Format-Policy -policy $d -markdownReport $markdownReport -outFile "$($paths.compliancePath)\$(Format-String -inputString $d.displayName)`.json"
-                Format-Assignment -policy $d -markdownReport $markdownReport
+                Format-Assignment -policy $d | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -137,10 +137,8 @@ function Build-IntuneConfigReport {
             Write-Host " Device Configuration Policies" -NoNewline -ForegroundColor Green
             "`n## Device Configuration Policies`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($d in $config.deviceConfiguration) {
-                $displayName = $null
-                $displayName = $d.displayName -replace '\[', '(' -replace '\]', ')'
                 Format-Policy -policy $d -markdownReport $markdownReport -outFile "$($paths.configurationPath)\$(Format-String -inputString $d.displayName)`.json"
-                Format-Assignment -policy $d -markdownReport $markdownReport
+                Format-Assignment -policy $d | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -155,12 +153,12 @@ function Build-IntuneConfigReport {
                 $folderName = Format-String -inputString $e.displayName
                 New-Item "$($paths.endpointSecurity)\$folderName" -ItemType Directory -Force | Out-Null
                 # store template
-                $e | Select-Object templateId, displayName, description | ConvertTo-Json -Depth 10 | Out-File -FilePath "$($paths.endpointSecurity)\$($folderName)\template.json" -Encoding ascii
+                $e | Select-Object templateId, displayName, description | ConvertTo-Json -Depth 10 | Out-File -FilePath "$($paths.endpointSecurity)\$folderName\template.json" -Encoding ascii
                 #store intents
                 $intents = $($e.settings | Select-Object '*@odata*', definitionId, ValueJson | ConvertTo-Json -Depth 10)
                 @{
                     "settings" = $intents
-                } | ConvertTo-Json | Out-File -FilePath "$($paths.endpointSecurity)\$($folderName)\intent.json" -Encoding ascii
+                } | ConvertTo-Json | Out-File -FilePath "$($paths.endpointSecurity)\$folderName\intent.json" -Encoding ascii
                 #expand setting values
                 Get-EndpointSecurityPolicyDetails -AuthToken $authToken -ESPolicies $e
                 foreach ($s in $e.settings) {
@@ -173,13 +171,14 @@ function Build-IntuneConfigReport {
                         else {
                             $tmp.jsonResult = $s | Select-Object @{ Name = 'Value'; Expression = { $_.valueJson | ConvertFrom-Json } } | ConvertTo-Json -Depth 10
                         }
-                        $tmp.mdResult = (Convert-JsonToMarkdown -json ($tmp.jsonResult) -title "#### $($s.DisplayName)") -replace 'Value\.'
+                        $tmp.mdResult = (Convert-JsonToMarkdown -json $tmp.jsonResult -title "#### $($s.DisplayName)") -replace 'Value\.'
                         $tmp.mdResult | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                     }
                     else {
                         Write-Verbose "$($s.DisplayName): $($s.valueJson)"
                     }
                 }
+                Format-Assignment -policy $e | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -191,7 +190,7 @@ function Build-IntuneConfigReport {
             "`n## Enrollment Status Policy`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($e in $config.enrollmentStatus) {
                 Format-Policy -policy $e -markdownReport $markdownReport -outFile "$($paths.esp)\$(Format-String -inputString $e.displayName)`.json"
-                Format-Assignment -policy $e -markdownReport $markdownReport
+                Format-Assignment -policy $e | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -215,7 +214,7 @@ function Build-IntuneConfigReport {
                     outFile        = "$($paths.scriptPath)\$displayName\$displayName`.json"
                 }
                 Format-Policy @fpParam
-                Format-Assignment -policy $s -markdownReport $markdownReport
+                Format-Assignment -policy $s | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -227,7 +226,7 @@ function Build-IntuneConfigReport {
             "`n## Office 365 Configuration`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($o in $config.office365) {
                 Format-Policy -policy $o -markdownReport $markdownReport -outFile "$($paths.o365)\$(Format-String -inputString $o.displayName)`.json"
-                Format-Assignment -policy $o -markdownReport $markdownReport
+                Format-Assignment -policy $o | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -239,7 +238,7 @@ function Build-IntuneConfigReport {
             "`n## Win32 Applications`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($a in $config.win32Apps) {
                 Format-Policy -policy $a -markdownReport $markdownReport -outFile "$($paths.apps)\$(Format-String -inputString $a.displayName)`.json"
-                Format-Assignment -policy $a -markdownReport $markdownReport
+                Format-Assignment -policy $a | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }

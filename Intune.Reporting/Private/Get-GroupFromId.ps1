@@ -7,7 +7,12 @@ function Get-GroupFromId {
         [parameter(Mandatory = $true)]
         $authToken
     )
-    $uri = "https://graph.microsoft.com/beta/groups/$($id)?`$select=id,displayName"
-    $res = Invoke-RestMethod -Method Get -Uri $uri -ContentType 'Application/Json' -Headers $authToken
-    return $res
+    try {
+        $uri = "https://graph.microsoft.com/beta/groups/$($id)?`$select=id,displayName"
+        $res = Invoke-RestMethod -Method Get -Uri $uri -ContentType 'Application/Json' -Headers $authToken
+        return $res
+    }
+    catch {
+        return $null
+    }
 }

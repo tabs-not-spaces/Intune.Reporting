@@ -8,7 +8,7 @@
 # Get public and private function definition files.
 $Public  = @(Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -ErrorAction SilentlyContinue)
 $Private = @(Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 -ErrorAction SilentlyContinue)
-$script:applicationId = "eaa4e3b8-78b6-426d-bb92-9422d35fc33a"
+$script:applicationId = "d1ddf0e4-d672-4dae-b554-9d5bdfd93547"
 # Dot source the files
 foreach ($import in @($Public + $Private))
 {

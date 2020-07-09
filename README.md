@@ -30,7 +30,7 @@ The following modules are required for use - once in production these will be au
 
 Only works with PowerShell 7 - using all the shiny new ternary and null check tools.
 
-The AAD Application built for this module <code>(eaa4e3b8-78b6-426d-bb92-9422d35fc33a)</code> will request consent using the MASL libraries.
+The well known Intune AAD Application <code>(d1ddf0e4-d672-4dae-b554-9d5bdfd93547)</code> will request consent using the MASL libraries.
 
 Import the module from this repository (assuming you are already in the root of this directory)
 
@@ -41,8 +41,10 @@ Import-Module .\Intune.Reporting
 There's only one function publically exposed - because I'm nice like that.
 
 ``` PowerShell
-Build-IntuneConfigReport -Tenant "Powers-Hell.com" -OutputFolder "C:\Path\To\Reports"
+Build-IntuneConfigReport -Tenant "Powers-Hell.com" -OutputFolder "C:\Path\To\Reports" -Filter admx,autopilot,deviceConfiguration
 ```
+
+Filter is optional - leave it out and everything that can be reported on will be. Cool!
 
 Raw JSON output from the Intune environment will be sent to the **outputFolder** directory.
 A details report will be stored in the root of the **outputFolder** in markdown format - from this you can easily convert to word / pdf from VSCode.
