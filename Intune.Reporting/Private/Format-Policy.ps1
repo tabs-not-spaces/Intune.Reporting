@@ -16,7 +16,7 @@ function Format-Policy {
             $filteredPolicy | ConvertTo-Json -Depth 100 | Out-File -FilePath $outFile -Encoding ascii -Force
         }
         $tmp = @{ }
-        $tmp.jsonResult = Remove-NullProperties -InputObject $filteredPolicy | ConvertTo-Json -Depth 20
+        $tmp.jsonResult = Format-NullProperties -InputObject $filteredPolicy | ConvertTo-Json -Depth 20
         $tmp.mdResult = Convert-JsonToMarkdown -json ($tmp.jsonResult) -title "### $($filteredPolicy.displayName)"
         $tmp.mdResult | Out-File $markdownReport -Encoding ascii -NoNewline -Append
     }

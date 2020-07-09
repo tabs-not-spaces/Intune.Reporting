@@ -1,4 +1,4 @@
-function Build-IntuneConfigReport {
+﻿function Build-IntuneConfigReport {
     [cmdletbinding()]
     param (
         [Parameter(mandatory = $true)]
@@ -97,7 +97,7 @@ function Build-IntuneConfigReport {
                     $filename = Format-String -inputString "$($DefinitionValuedefinition.categoryPath)-$definitionValuedefinitionDisplayName"
                     $outdef | ConvertTo-Json -Depth 10 | Out-File -FilePath "$($paths.admx)\$($folderName)\$filename.json" -Encoding ascii
                     $tmp = @{ }
-                    $tmp.jsonResult = Remove-NullProperties -InputObject $outdef | ConvertTo-Json -Depth 20
+                    $tmp.jsonResult = Format-NullProperties -InputObject $outdef | ConvertTo-Json -Depth 20
                     $tmp.mdResult = Convert-JsonToMarkdown -json ($tmp.jsonResult) -title "`n##### $($filename -replace '_', ' ')"
                     $tmp.mdResult | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 }

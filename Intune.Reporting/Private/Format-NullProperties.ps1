@@ -1,4 +1,5 @@
-function Remove-NullProperties {
+function Format-NullProperties {
+    [cmdletbinding()]
     param(
         [parameter(Mandatory, ValueFromPipeline)]
         [psobject] $InputObject

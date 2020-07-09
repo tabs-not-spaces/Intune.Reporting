@@ -1,1 +1,2 @@
-Initial release!
+{{NewVersion}}
+  - Initial Release
