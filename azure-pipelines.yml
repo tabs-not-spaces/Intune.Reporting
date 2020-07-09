@@ -23,9 +23,9 @@ stages:
               targetType: 'inline'
               script: |
                 Install-Module -Name Pester -MaximumVersion 4.10.1 -Verbose -Scope CurrentUser -SkipPublisherCheck -Force
-                Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -SkipPublisherCheck -ErrorAction SilentlyContinue -Force
-                Install-Module -Name newtonsoft.json -Scope CurrentUser -Force
-                Install-Module -Name msal.ps -Scope CurrentUser -SkipPublisherCheck -ErrorAction SilentlyContinue -Force
+                Install-Module -Name "PSScriptAnalyzer" -Scope CurrentUser -SkipPublisherCheck -ErrorAction SilentlyContinue -Force
+                Install-Module -Name "newtonsoft.json" -Scope CurrentUser -Force
+                Install-Module -Name "MSAL.PS" -Scope CurrentUser -Force
               pwsh: true
 
           - task: PowerShell@2
@@ -81,8 +81,8 @@ stages:
                     script: |
                       try {
                         $modules = @(
-                          "WindowsAutoPilotIntune"
-                          "Microsoft.Graph.Intune"
+                          "newtonsoft.json"
+                          "msal.ps"
                         )
                         foreach ($m in $modules) {
                           write-host "Installing module: $m.."
