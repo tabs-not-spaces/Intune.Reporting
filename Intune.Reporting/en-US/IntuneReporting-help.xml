@@ -1,0 +1,144 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<helpItems schema="maml" xmlns="http://msh">
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+    <command:details>
+      <command:name>Build-IntuneConfigReport</command:name>
+      <command:verb>Build</command:verb>
+      <command:noun>IntuneConfigReport</command:noun>
+      <maml:description>
+        <maml:para>Capture and document all Intune configuration items, policies and applications.</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Single function that will capture and document all configuration items, policies and applications within your Intune tenant.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Build-IntuneConfigReport</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="0" aliases="none">
+          <maml:name>Tenant</maml:name>
+          <maml:Description>
+            <maml:para>The address of the Azure tenant you want to query - either the domain or the Azure TenantId will work.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">Uri</command:parameterValue>
+          <dev:type>
+            <maml:name>Uri</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+          <maml:name>OutputFolder</maml:name>
+          <maml:Description>
+            <maml:para>The root folder where you want to store the output of the command. A sub folder will be created with the name provided from the tenant parameter.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">String / FileInfo</command:parameterValue>
+          <dev:type>
+            <maml:name>String / FileInfo</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+          <maml:name>Filter</maml:name>
+          <maml:Description>
+            <maml:para>Select only the endpoints you want to report on. Can be one or many. Not using this parameter defaults to pulling all possible endpoints.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:parameters>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="0" aliases="none">
+        <maml:name>Tenant</maml:name>
+        <maml:Description>
+          <maml:para>The address of the Azure tenant you want to query - either the domain or the Azure TenantId will work.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="true" variableLength="false">Uri</command:parameterValue>
+        <dev:type>
+          <maml:name>Uri</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+        <maml:name>OutputFolder</maml:name>
+        <maml:Description>
+          <maml:para>The root folder where you want to store the output of the command. A sub folder will be created with the name provided from the tenant parameter.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="true" variableLength="false">String / FileInfo</command:parameterValue>
+        <dev:type>
+          <maml:name>String / FileInfo</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+        <maml:name>Filter</maml:name>
+        <maml:Description>
+          <maml:para>Select only the endpoints you want to report on. Can be one or many. Not using this parameter defaults to pulling all possible endpoints.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+    </command:parameters>
+    <command:inputTypes>
+      <command:inputType>
+        <dev:type>
+          <maml:name>None</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:inputType>
+    </command:inputTypes>
+    <command:returnValues>
+      <command:returnValue>
+        <dev:type>
+          <maml:name>System.Object</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:returnValue>
+    </command:returnValues>
+    <maml:alertSet>
+      <maml:alert>
+        <maml:para></maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>-------------------------- Example 1 --------------------------</maml:title>
+        <dev:code>PS C:\&gt; Build-IntuneConfigReport -Tenant 'ba6eab59-a57c-4b92-ac71-6c3342cdc6c8' -outputFolder 'C:\reports'</dev:code>
+        <dev:remarks>
+          <maml:para>This example will authenticate to the tenant 'ba6eab59-a57c-4b92-ac71-6c3342cdc6c8' and generate content in a folder named 'ba6eab59-a57c-4b92-ac71-6c3342cdc6c8' within C:\reports. All endpoints will be reported on.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- Example 2 --------------------------</maml:title>
+        <dev:code>PS C:\&gt; Build-IntuneConfigReport -Tenant 'Powers-Hell.com' -outputFolder 'C:\reports'</dev:code>
+        <dev:remarks>
+          <maml:para>This example will authenticate to the tenant 'Powers-Hell.com' and generate content in a folder named 'Powers-Hell.com' within C:\reports. All endpoints will be reported on.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- Example 3 --------------------------</maml:title>
+        <dev:code>PS C:\&gt; Build-IntuneConfigReport -Tenant 'Powers-Hell.com' -outputFolder 'C:\reports' -Filter admx, deviceConfiguration, scripts</dev:code>
+        <dev:remarks>
+          <maml:para>This example will authenticate to the tenant 'Powers-Hell.com' and generate content in a folder named 'Powers-Hell.com' within C:\reports. Only the endpoints admx, deviceConfiguration and scripts will be reported on.</maml:para>
+        </dev:remarks>
+      </command:example>
+    </command:examples>
+    <command:relatedLinks />
+  </command:command>
+</helpItems>
