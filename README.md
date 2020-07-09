@@ -1,4 +1,7 @@
 # Intune Configuration Capture & Reporting Solution
+[![Build Status](https://dev.azure.com/powers-hell/Intune.Reporting/_apis/build/status/tabs-not-spaces.Intune.Reporting?branchName=master)](https://dev.azure.com/powers-hell/Intune.Reporting/_build/latest?definitionId=41&branchName=master)
+![PowerShell Gallery](https://img.shields.io/powershellgallery/v/Intune.Reporting.svg?style=flat&logo=powershell&label=PSGallery%20Version)
+![PSGallery Downloads](https://img.shields.io/powershellgallery/dt/Intune.Reporting.svg?style=flat&logo=powershell&label=PSGallery%20Downloads)
 
 ![](intunereporting.gif)
 
