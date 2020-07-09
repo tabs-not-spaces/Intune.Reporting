@@ -21,7 +21,6 @@ Current endpoints that are captured:
 The following modules are required for use - once in production these will be automatically installed.
 
 - MSAL.PS
-- AzureADPreview
 - Newtonsoft.Json
 
 ## Usage
