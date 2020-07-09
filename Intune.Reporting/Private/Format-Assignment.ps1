@@ -1,4 +1,5 @@
 function Format-Assignment {
+    [OutputType('System.String')]
     [cmdletbinding()]
     param (
         [Parameter(Mandatory = $true)]
@@ -36,7 +37,7 @@ function Format-Assignment {
             "| $($a.intent ? $a.intent.Substring(0,1).toUpper()+$a.intent.Substring(1).toLower() : $null) | $($a.mode) | $($a.displayName) |`n"
         }
 
-        $table = @"
+        [string]$table = @"
 
 #### Assignments
 
@@ -44,7 +45,7 @@ function Format-Assignment {
 |-----------|-----------|-----------|
 $($assignments ?? "| $null | $null | $null |`n")
 "@
-        $table
+        return $table
     }
     catch {
         Write-Warning $_.Exception.Message
