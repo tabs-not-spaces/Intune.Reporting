@@ -42,8 +42,8 @@ There's only one function publically exposed - because I'm nice like that.
 Build-IntuneConfigReport -Tenant "Powers-Hell.com" -OutputFolder "C:\Path\To\Reports" -Filter admx,autopilot,deviceConfiguration
 ```
 
-<code>-Tenant</code> can take FQDN or TenantID - dealers choice.
-<code>-OutputFolder</code> dictates the root path to where you want to store the report data. If the folder doesn't exist it will be created.
+<code>-Tenant</code> can take FQDN or TenantID - dealers choice.<br>
+<code>-OutputFolder</code> dictates the root path to where you want to store the report data. If the folder doesn't exist it will be created.<br>
 <code>-Filter</code> is optional - leave it out and everything that can be reported on will be. Cool!
 
 Raw JSON output from the Intune environment will be sent to the **outputFolder** directory.
