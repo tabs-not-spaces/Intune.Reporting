@@ -25,7 +25,7 @@ stages:
                 Install-Module -Name Pester -MaximumVersion 4.10.1 -Verbose -Scope CurrentUser -SkipPublisherCheck -Force
                 Install-Module -Name "PSScriptAnalyzer" -Scope CurrentUser -SkipPublisherCheck -ErrorAction SilentlyContinue -Force
                 Install-Module -Name "newtonsoft.json" -Scope CurrentUser -Force
-                Install-Module -Name "MSAL.PS" -Scope CurrentUser -Force
+                Install-Module -Name "MSAL.PS" -Scope CurrentUser -AcceptLicense -Force
               pwsh: true
 
           - task: PowerShell@2
@@ -86,7 +86,7 @@ stages:
                         )
                         foreach ($m in $modules) {
                           write-host "Installing module: $m.."
-                          Install-Module $m -Scope CurrentUser -Force
+                          Install-Module $m -Scope CurrentUser -AcceptLicense -Force
                         }
                         write-host "Publishing module from: $env:Pipeline_Workspace\release\$env:MODULENAME"
                         Publish-Module -Path "$env:Pipeline_Workspace\release\$env:MODULENAME" -NuGetApiKey $env:APIKEY
