@@ -10,13 +10,11 @@ Current endpoints that are captured:
 - AutoPilot
 - Device Compliance
 - Device Configuration
+- Endpoint Security Policies
 - Enrollment Status Page
 - Scripts
 - Win32 Applications
 
-To be finalized:
-
-- Endpoint Security Policies
 
 ## Pre-Reqs
 
