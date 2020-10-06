@@ -52,7 +52,7 @@ stages:
 
           - task: CopyFiles@2
             inputs:
-              SourceFolder: './bin/releas'
+              SourceFolder: './bin/release'
               Contents: '**'
               TargetFolder: '$(Build.ArtifactStagingDirectory)'
               CleanTargetFolder: true
