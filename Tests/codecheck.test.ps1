@@ -4,13 +4,14 @@ param (
 )
 $excludeRule = @(
     "PSAvoidUsingWriteHost",
-    "PSAvoidUsingConvertToSecureStringWithPlainText"
+    "PSAvoidUsingConvertToSecureStringWithPlainText",
+    "PSAvoidUsingPositionalParameters"
 )
 $fp = Split-Path $PSScriptRoot -Parent
 if (Test-Path $fp\localenv.ps1 -ErrorAction SilentlyContinue) {
     . $fp\localenv.ps1
 }
-$fp = "$fp\bin\release\$env:BUILD_BUILDID\$env:MODULENAME"
+$fp = "$fp\bin\release\$env:MODULENAME"
 $fp
 Describe "Checking content exists" {
     if ($filePath) {
