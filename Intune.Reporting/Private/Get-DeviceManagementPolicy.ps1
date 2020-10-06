@@ -6,7 +6,7 @@ Function Get-DeviceManagementPolicy {
         $AuthToken,
 
         [Parameter(Mandatory = $true)]
-        [ValidateSet('ADMX', 'AutoPilot', 'Compliance', 'Configuration','EndpointSecurity', 'EnrollmentStatus','FeatureUpdate', 'Script')]
+        [ValidateSet('ADMX', 'AutoPilot', 'Compliance', 'Configuration','EndpointSecurity', 'EnrollmentStatus','FeatureUpdate', 'ProactiveRemediation', 'Script')]
         [string]$ManagementType
 
     )
@@ -42,6 +42,11 @@ Function Get-DeviceManagementPolicy {
         }
         "FeatureUpdate" {
             $graphEndpoint = 'deviceManagement/windowsFeatureUpdateProfiles'
+            break
+        }
+        "ProactiveRemediation" {
+            $graphEndpoint = "deviceManagement/deviceHealthScripts"
+            $itemType = "Proactive Remediation Scripts"
             break
         }
         "Script" {
