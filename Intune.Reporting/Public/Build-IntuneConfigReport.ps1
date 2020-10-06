@@ -8,7 +8,7 @@
         [System.IO.FileInfo]$OutputFolder,
 
         [Parameter(mandatory = $false)]
-        [ValidateSet('admx','autopilot','deviceCompliance','deviceConfiguration','endpointSecurityPolicy','enrollmentStatus','scripts','office365','win32Apps')]
+        [ValidateSet('admx','autopilot','deviceCompliance','deviceConfiguration','endpointSecurityPolicy','enrollmentStatus','featureUpdate','scripts','office365','win32Apps')]
         [string[]]$Filter
     )
     try {
@@ -35,6 +35,7 @@
             deviceConfiguration    = $Filter -match "all|deviceConfiguration" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Configuration) : $null
             endpointSecurityPolicy = $Filter -match "all|endpointSecurityPolicy" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EndpointSecurity) : $null
             enrollmentStatus       = $Filter -match "all|enrollmentStatus" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EnrollmentStatus) : $null
+            featureUpdate          = $Filter -match "all|featureUpdate" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType FeatureUpdate) : $null
             scripts                = $Filter -match "all|scripts" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Script) : $null
             office365              = $Filter -match "all|office365" ? (Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Office365) : $null
             win32Apps              = $Filter -match "all|win32Apps" ? (Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Win32) : $null
@@ -50,6 +51,7 @@
             configurationPath = (($config.deviceConfiguration) ? "$outputPath\config-profiles" : $null)
             endpointSecurity  = (($config.endpointSecurityPolicy) ? "$outputPath\endpoint-security-policies" : $null)
             esp               = (($config.enrollmentStatus) ? "$outputPath\esp" : $null)
+            fu                = (($config.featureUpdate) ? "$outputPath\feature-update" : $null)
             o365              = (($config.office365) ? "$outputPath\o365" : $null)
             scriptPath        = (($config.scripts) ? "$outputPath\scripts" : $null)
         }
@@ -191,6 +193,18 @@
             foreach ($e in $config.enrollmentStatus) {
                 Format-Policy -policy $e -markdownReport $markdownReport -outFile "$($paths.esp)\$(Format-String -inputString $e.displayName)`.json"
                 Format-Assignment -policy $e | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+            }
+            "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+        }
+        #endregion
+        #region Feature Update
+        if ($config.featureUpdate) {
+            Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
+            Write-Host " Feature Updates   " -NoNewline -ForegroundColor Green
+            "`n## Feature Update Policy`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+            foreach ($f in $config.featureUpdate) {
+                Format-Policy -policy $f -markdownReport $markdownReport -outFile "$($paths.fu)\$(Format-String -inputString $f.displayName)`.json"
+                Format-Assignment -policy $f | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
