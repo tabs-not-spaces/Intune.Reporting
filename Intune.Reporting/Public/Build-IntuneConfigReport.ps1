@@ -8,7 +8,7 @@
         [System.IO.FileInfo]$OutputFolder,
 
         [Parameter(mandatory = $false)]
-        [ValidateSet('admx','autopilot','deviceCompliance','deviceConfiguration','endpointSecurityPolicy','enrollmentStatus','scripts','office365','win32Apps')]
+        [ValidateSet('admx','autopilot','deviceCompliance','deviceConfiguration','endpointSecurityPolicy','enrollmentStatus','featureUpdate','scripts','office365','proactiveRemediation','win32Apps')]
         [string[]]$Filter
     )
     try {
@@ -35,8 +35,10 @@
             deviceConfiguration    = $Filter -match "all|deviceConfiguration" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Configuration) : $null
             endpointSecurityPolicy = $Filter -match "all|endpointSecurityPolicy" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EndpointSecurity) : $null
             enrollmentStatus       = $Filter -match "all|enrollmentStatus" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EnrollmentStatus) : $null
+            featureUpdate          = $Filter -match "all|featureUpdate" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType FeatureUpdate) : $null
             scripts                = $Filter -match "all|scripts" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Script) : $null
             office365              = $Filter -match "all|office365" ? (Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Office365) : $null
+            proactiveRemediation     = $Filter -match "all|proactiveRemediation" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType ProactiveRemediation) : $null
             win32Apps              = $Filter -match "all|win32Apps" ? (Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Win32) : $null
         }
         #endregion
@@ -50,7 +52,9 @@
             configurationPath = (($config.deviceConfiguration) ? "$outputPath\config-profiles" : $null)
             endpointSecurity  = (($config.endpointSecurityPolicy) ? "$outputPath\endpoint-security-policies" : $null)
             esp               = (($config.enrollmentStatus) ? "$outputPath\esp" : $null)
+            fu                = (($config.featureUpdate) ? "$outputPath\feature-update" : $null)
             o365              = (($config.office365) ? "$outputPath\o365" : $null)
+            prScripts         = (($config.proactiveRemediation) ? "$outputPath\proactive-remediation-scripts" : $null)
             scriptPath        = (($config.scripts) ? "$outputPath\scripts" : $null)
         }
         $markdownReport = "$outputPath\$Tenant`_report.md"
@@ -88,8 +92,8 @@
                     $outdef = [PSCustomObject]@{
                         enabled = $($v.enabled.tostring().tolower())
                     }
-                    if ($definitionValuePresentationValues.count -gt 1) {
-                        $presvalues = foreach ($pres in $definitionValuePresentationValues) {
+                    if ($definitionValuePresentationValues.values.count -gt 1) {
+                        $presvalues = foreach ($pres in $definitionValuePresentationValues.values) {
                             $pres | Select-Object -Property * -ExcludeProperty id, createdDateTime, lastModifiedDateTime, version, '*@odata*'
                         }
                         $outdef | Add-Member -MemberType NoteProperty -Name "presentationValues" -Value $presvalues
@@ -98,7 +102,7 @@
                     $outdef | ConvertTo-Json -Depth 10 | Out-File -FilePath "$($paths.admx)\$($folderName)\$filename.json" -Encoding ascii
                     $tmp = @{ }
                     $tmp.jsonResult = Format-NullProperties -InputObject $outdef | ConvertTo-Json -Depth 20
-                    $tmp.mdResult = Convert-JsonToMarkdown -json ($tmp.jsonResult) -title "`n##### $($filename -replace '_', ' ')"
+                    $tmp.mdResult = (Convert-JsonToMarkdown -json ($tmp.jsonResult) -title "`n##### $($filename -replace '_', ' ')" ) -replace 'presentationValues.',''
                     $tmp.mdResult | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 }
                 Format-Assignment -policy $gpc | Out-File $markdownReport -Encoding ascii -NoNewline -Append
@@ -195,6 +199,18 @@
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
         #endregion
+        #region Feature Update
+        if ($config.featureUpdate) {
+            Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
+            Write-Host " Feature Updates   " -NoNewline -ForegroundColor Green
+            "`n## Feature Update Policy`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+            foreach ($f in $config.featureUpdate) {
+                Format-Policy -policy $f -markdownReport $markdownReport -outFile "$($paths.fu)\$(Format-String -inputString $f.displayName)`.json"
+                Format-Assignment -policy $f | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+            }
+            "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+        }
+        #endregion
         #region Scripts
         if ($config.scripts) {
             Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
@@ -227,6 +243,33 @@
             foreach ($o in $config.office365) {
                 Format-Policy -policy $o -markdownReport $markdownReport -outFile "$($paths.o365)\$(Format-String -inputString $o.displayName)`.json"
                 Format-Assignment -policy $o | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+            }
+            "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+        }
+        #endregion
+        #region Proactive Remediation Scripts
+        if ($config.proactiveRemediation) {
+            Write-Host "`rGenerating Report:" -NoNewline -ForegroundColor Yellow
+            Write-Host " Remediation Scripts           " -NoNewline -ForegroundColor Green
+            "`n## Proactive Remediation Scripts`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+            foreach ($s in $config.proactiveRemediation) {
+                $displayName = $null
+                $displayName = Format-String -inputString $s.displayName
+                #store the script contents locally
+                New-Item "$($paths.prScripts)\$displayName" -ItemType Directory -Force | Out-Null
+                #TODO: finish this section
+                [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String("$($s.detectionScriptContent)")) |
+                Out-File -FilePath "$($paths.prScripts)\$displayName\detection.ps1" -Encoding ascii -Force
+                [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String("$($s.remediationScriptContent)")) |
+                Out-File -FilePath "$($paths.prScripts)\$displayName\remediation`.ps1" -Encoding ascii -Force
+
+                $fpParam = @{
+                    policy         = $($s | Select-Object * -ExcludeProperty detectionScriptContent,remediationScriptContent)
+                    markdownReport = $markdownReport
+                    outFile        = "$($paths.prScripts)\$displayName\$displayName`.json"
+                }
+                Format-Policy @fpParam
+                Format-Assignment -policy $s | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }

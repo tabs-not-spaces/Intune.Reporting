@@ -6,7 +6,7 @@ Function Get-DeviceManagementPolicy {
         $AuthToken,
 
         [Parameter(Mandatory = $true)]
-        [ValidateSet('ADMX', 'AutoPilot', 'Compliance', 'Configuration','EndpointSecurity', 'EnrollmentStatus', 'Script')]
+        [ValidateSet('ADMX', 'AutoPilot', 'Compliance', 'Configuration','EndpointSecurity', 'EnrollmentStatus','FeatureUpdate', 'ProactiveRemediation', 'Script')]
         [string]$ManagementType
 
     )
@@ -15,33 +15,42 @@ Function Get-DeviceManagementPolicy {
     $expand = '?$expand=Assignments'
     switch ($ManagementType) {
         "ADMX" {
-            $graphEndpoint = "deviceManagement/groupPolicyConfigurations"
+            $graphEndpoint = 'deviceManagement/groupPolicyConfigurations'
             break
         }
         "AutoPilot" {
-            $graphEndpoint = "deviceManagement/windowsAutopilotDeploymentProfiles"
+            $graphEndpoint = 'deviceManagement/windowsAutopilotDeploymentProfiles'
             break
         }
         "Compliance" {
-            $graphEndpoint = "deviceManagement/deviceCompliancePolicies"
+            $graphEndpoint = 'deviceManagement/deviceCompliancePolicies'
             break
         }
         "Configuration" {
-            $graphEndpoint = "deviceManagement/deviceConfigurations"
+            $graphEndpoint = 'deviceManagement/deviceConfigurations'
             break
         }
         "EndpointSecurity" {
-            $graphEndpoint = "deviceManagement/intents"
+            $graphEndpoint = 'deviceManagement/intents'
             $expand = '?$expand=Assignments,Settings($select=id,definitionId,valueJson)'
             break
         }
         "EnrollmentStatus" {
-            $graphEndpoint = "deviceManagement/deviceEnrollmentConfigurations"
+            $graphEndpoint = 'deviceManagement/deviceEnrollmentConfigurations'
             $filter = "?`$filter=isOf('microsoft.graph.windows10EnrollmentCompletionPageConfiguration')"
             break
         }
+        "FeatureUpdate" {
+            $graphEndpoint = 'deviceManagement/windowsFeatureUpdateProfiles'
+            break
+        }
+        "ProactiveRemediation" {
+            $graphEndpoint = "deviceManagement/deviceHealthScripts"
+            $itemType = "Proactive Remediation Scripts"
+            break
+        }
         "Script" {
-            $graphEndpoint = "deviceManagement/deviceManagementScripts"
+            $graphEndpoint = 'deviceManagement/deviceManagementScripts'
             $itemType = "PowerShell Scripts"
             break
         }
