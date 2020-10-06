@@ -88,8 +88,8 @@
                     $outdef = [PSCustomObject]@{
                         enabled = $($v.enabled.tostring().tolower())
                     }
-                    if ($definitionValuePresentationValues.count -gt 1) {
-                        $presvalues = foreach ($pres in $definitionValuePresentationValues) {
+                    if ($definitionValuePresentationValues.values.count -gt 1) {
+                        $presvalues = foreach ($pres in $definitionValuePresentationValues.values) {
                             $pres | Select-Object -Property * -ExcludeProperty id, createdDateTime, lastModifiedDateTime, version, '*@odata*'
                         }
                         $outdef | Add-Member -MemberType NoteProperty -Name "presentationValues" -Value $presvalues
@@ -98,7 +98,7 @@
                     $outdef | ConvertTo-Json -Depth 10 | Out-File -FilePath "$($paths.admx)\$($folderName)\$filename.json" -Encoding ascii
                     $tmp = @{ }
                     $tmp.jsonResult = Format-NullProperties -InputObject $outdef | ConvertTo-Json -Depth 20
-                    $tmp.mdResult = Convert-JsonToMarkdown -json ($tmp.jsonResult) -title "`n##### $($filename -replace '_', ' ')"
+                    $tmp.mdResult = (Convert-JsonToMarkdown -json ($tmp.jsonResult) -title "`n##### $($filename -replace '_', ' ')" ) -replace 'presentationValues.',''
                     $tmp.mdResult | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 }
                 Format-Assignment -policy $gpc | Out-File $markdownReport -Encoding ascii -NoNewline -Append
