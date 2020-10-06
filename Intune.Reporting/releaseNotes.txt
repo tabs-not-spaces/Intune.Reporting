@@ -1,5 +1,4 @@
 {{NewVersion}}
- - Updated help documentation and added project URI to Intune.Reporting.psd1
-
-{{LastVersion}}
-  - Initial Release
+ - Bugfix: ADMX policies with nested properties should now be added to report
+ - Feature: FeatureUpdate endpoint added to report
+ - Feature: Proactive Remediation Script endpoint added to report
