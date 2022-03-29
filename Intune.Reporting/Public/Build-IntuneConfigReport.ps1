@@ -9,7 +9,10 @@
 
         [Parameter(mandatory = $false)]
         [ValidateSet('admx','autopilot','deviceCompliance','deviceConfiguration','endpointSecurityPolicy','enrollmentStatus','featureUpdate','scripts','office365','proactiveRemediation','win32Apps')]
-        [string[]]$Filter
+        [string[]]$Filter,
+
+        [Parameter(mandatory = $false)]
+        [switch]$OnlyListPolicyTitle
     )
     try {
         #region authentication
@@ -102,7 +105,7 @@
                     $outdef | ConvertTo-Json -Depth 10 | Out-File -FilePath "$($paths.admx)\$($folderName)\$filename.json" -Encoding ascii
                     $tmp = @{ }
                     $tmp.jsonResult = Format-NullProperties -InputObject $outdef | ConvertTo-Json -Depth 20
-                    $tmp.mdResult = (Convert-JsonToMarkdown -json ($tmp.jsonResult) -title "`n##### $($filename -replace '_', ' ')" ) -replace 'presentationValues.',''
+                    $tmp.mdResult = (Convert-JsonToMarkdown -json ($tmp.jsonResult) -title "`n##### $($filename -replace '_', ' ')" -onlyListPolicyTitle:$onlyListPolicyTitle ) -replace 'presentationValues.',''
                     $tmp.mdResult | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 }
                 Format-Assignment -policy $gpc | Out-File $markdownReport -Encoding ascii -NoNewline -Append
@@ -116,7 +119,7 @@
             Write-Host " AutoPilot Policies           " -NoNewline -ForegroundColor Green
             "`n## AutoPilot Policies`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($a in $config.autoPilot) {
-                Format-Policy -policy $a -markdownReport $markdownReport -outFile "$($paths.autopilotPath)\$(Format-String -inputString $a.displayName)`.json"
+                Format-Policy -policy $a -markdownReport $markdownReport -outFile "$($paths.autopilotPath)\$(Format-String -inputString $a.displayName)`.json" -onlyListPolicyTitle:$onlyListPolicyTitle
                 Format-Assignment -policy $a | Out-File $markdownReport -Encoding ascii -NoNewline -Append
 
             }
@@ -129,7 +132,7 @@
             Write-Host " Device Compliance Policies   " -NoNewline -ForegroundColor Green
             "`n## Device Compliance Policies`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($d in $config.deviceCompliance) {
-                Format-Policy -policy $d -markdownReport $markdownReport -outFile "$($paths.compliancePath)\$(Format-String -inputString $d.displayName)`.json"
+                Format-Policy -policy $d -markdownReport $markdownReport -outFile "$($paths.compliancePath)\$(Format-String -inputString $d.displayName)`.json" -onlyListPolicyTitle:$onlyListPolicyTitle
                 Format-Assignment -policy $d | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
@@ -141,7 +144,7 @@
             Write-Host " Device Configuration Policies" -NoNewline -ForegroundColor Green
             "`n## Device Configuration Policies`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($d in $config.deviceConfiguration) {
-                Format-Policy -policy $d -markdownReport $markdownReport -outFile "$($paths.configurationPath)\$(Format-String -inputString $d.displayName)`.json"
+                Format-Policy -policy $d -markdownReport $markdownReport -outFile "$($paths.configurationPath)\$(Format-String -inputString $d.displayName)`.json" -onlyListPolicyTitle:$onlyListPolicyTitle
                 Format-Assignment -policy $d | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
@@ -175,7 +178,7 @@
                         else {
                             $tmp.jsonResult = $s | Select-Object @{ Name = 'Value'; Expression = { $_.valueJson | ConvertFrom-Json } } | ConvertTo-Json -Depth 10
                         }
-                        $tmp.mdResult = (Convert-JsonToMarkdown -json $tmp.jsonResult -title "#### $($s.DisplayName)") -replace 'Value\.'
+                        $tmp.mdResult = (Convert-JsonToMarkdown -json $tmp.jsonResult -title "#### $($s.DisplayName)" -onlyListPolicyTitle:$onlyListPolicyTitle) -replace 'Value\.'
                         $tmp.mdResult | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                     }
                     else {
@@ -193,7 +196,7 @@
             Write-Host " Enrollment Status Policies   " -NoNewline -ForegroundColor Green
             "`n## Enrollment Status Policy`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($e in $config.enrollmentStatus) {
-                Format-Policy -policy $e -markdownReport $markdownReport -outFile "$($paths.esp)\$(Format-String -inputString $e.displayName)`.json"
+                Format-Policy -policy $e -markdownReport $markdownReport -outFile "$($paths.esp)\$(Format-String -inputString $e.displayName)`.json" -onlyListPolicyTitle:$onlyListPolicyTitle
                 Format-Assignment -policy $e | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
@@ -205,7 +208,7 @@
             Write-Host " Feature Updates   " -NoNewline -ForegroundColor Green
             "`n## Feature Update Policy`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($f in $config.featureUpdate) {
-                Format-Policy -policy $f -markdownReport $markdownReport -outFile "$($paths.fu)\$(Format-String -inputString $f.displayName)`.json"
+                Format-Policy -policy $f -markdownReport $markdownReport -outFile "$($paths.fu)\$(Format-String -inputString $f.displayName)`.json" -onlyListPolicyTitle:$onlyListPolicyTitle
                 Format-Assignment -policy $f | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
@@ -229,7 +232,7 @@
                     markdownReport = $markdownReport
                     outFile        = "$($paths.scriptPath)\$displayName\$displayName`.json"
                 }
-                Format-Policy @fpParam
+                Format-Policy @fpParam -onlyListPolicyTitle:$onlyListPolicyTitle
                 Format-Assignment -policy $s | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
@@ -241,7 +244,7 @@
             Write-Host " Office 365                   " -NoNewline -ForegroundColor Green
             "`n## Office 365 Configuration`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($o in $config.office365) {
-                Format-Policy -policy $o -markdownReport $markdownReport -outFile "$($paths.o365)\$(Format-String -inputString $o.displayName)`.json"
+                Format-Policy -policy $o -markdownReport $markdownReport -outFile "$($paths.o365)\$(Format-String -inputString $o.displayName)`.json" -onlyListPolicyTitle:$onlyListPolicyTitle
                 Format-Assignment -policy $o | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
@@ -268,7 +271,7 @@
                     markdownReport = $markdownReport
                     outFile        = "$($paths.prScripts)\$displayName\$displayName`.json"
                 }
-                Format-Policy @fpParam
+                Format-Policy @fpParam -onlyListPolicyTitle:$onlyListPolicyTitle
                 Format-Assignment -policy $s | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
@@ -280,7 +283,7 @@
             Write-Host " Win32 Applications           " -NoNewline -ForegroundColor Green
             "`n## Win32 Applications`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($a in $config.win32Apps) {
-                Format-Policy -policy $a -markdownReport $markdownReport -outFile "$($paths.apps)\$(Format-String -inputString $a.displayName)`.json"
+                Format-Policy -policy $a -markdownReport $markdownReport -outFile "$($paths.apps)\$(Format-String -inputString $a.displayName)`.json" -onlyListPolicyTitle:$onlyListPolicyTitle
                 Format-Assignment -policy $a | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append

@@ -8,7 +8,11 @@ function Format-Policy {
         [string]$markdownReport,
 
         [Parameter(Mandatory = $false)]
-        [string]$outFile
+        [string]$outFile,
+
+        [Parameter(Mandatory = $false)]
+        [switch]$onlyListPolicyTitle
+
     )
     try {
         $filteredPolicy = $policy | Select-Object * -ExcludeProperty id, lastModifiedDateTime, roleScopeTagIds, supportsScopeTags, createdDateTime, version, '*@odata*', assignments
@@ -17,7 +21,7 @@ function Format-Policy {
         }
         $tmp = @{ }
         $tmp.jsonResult = Format-NullProperties -InputObject $filteredPolicy | ConvertTo-Json -Depth 20
-        $tmp.mdResult = Convert-JsonToMarkdown -json ($tmp.jsonResult) -title "### $($filteredPolicy.displayName)"
+        $tmp.mdResult = Convert-JsonToMarkdown -json ($tmp.jsonResult) -title "### $($filteredPolicy.displayName)" -onlyListPolicyTitle:$onlyListPolicyTitle
         $tmp.mdResult | Out-File $markdownReport -Encoding ascii -NoNewline -Append
     }
     catch {

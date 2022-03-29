@@ -4,14 +4,22 @@ function Convert-JsonToMarkdown {
         [string]$Json,
 
         [parameter(Mandatory = $false)]
-        [string]$Title
+        [string]$Title,
+
+        [Parameter(Mandatory = $false)]
+        [switch]$onlyListPolicyTitle
     )
-    ## need this installed
-    #install-module newtonsoft.json -Scope AllUsers
-    #import-module newtonsoft.json
-    $a = ConvertFrom-JsonNewtonsoft $Json
-    $tableContent = Get-DataFromOrderedDic $a
-    $table = @"
+    if ($onlyListPolicyTitle) {
+        $table = @"
+
+$Title
+"@
+        return $Title
+    }
+    else {
+        $a = ConvertFrom-JsonNewtonsoft $Json
+        $tableContent = Get-DataFromOrderedDic $a
+        $table = @"
 
 $Title
 
@@ -19,5 +27,7 @@ $Title
 |-----------|-----------|
 $tableContent
 "@
-    return $table
+        return $table
+    }
+    
 }
