@@ -16,9 +16,7 @@
         if (!($PSVersionTable.PSEdition -eq 'core')) {
             throw "Needs to be run in PWSH 7."
         }
-        if(-not $global:auth) {
-            $global:auth = Get-MsalToken -ClientId $script:applicationId -Tenant $Tenant -DeviceCode
-        }
+        $auth = Get-MsalToken -ClientId $script:applicationId -Tenant $Tenant -DeviceCode
         $authToken = @{
             'Content-Type'  = 'application/json'
             'Authorization' = $auth.CreateAuthorizationHeader()
