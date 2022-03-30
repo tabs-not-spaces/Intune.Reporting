@@ -29,7 +29,7 @@ function Get-MobileAppConfigurations {
         Write-Host "$MobileAppType applications: " -NoNewline -ForegroundColor Cyan
         Write-Host "$($apps.count) $(($apps.count -eq 1) ? "item" : "items") found." -ForegroundColor Green
         $result = foreach ($a in $apps) {
-            $ur = "https://graph.microsoft.com/beta/deviceappmanagement/mobileapps/$($a.id)?`$expand=Assignments"
+            $ur = "https://graph.microsoft.com/beta/deviceappmanagement/mobileapps/$($a.id)?`$expand=assignments,categories"
             Invoke-RestMethod -Method Get -Uri $ur -Headers $AuthToken | Select-Object * -exclude LargeIcon
         }
         $result

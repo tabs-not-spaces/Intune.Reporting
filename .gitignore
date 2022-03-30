@@ -8,3 +8,4 @@ bin
 *.zip
 localenv.ps1
 !module.nuspec
+asdlab1.onmicrosoft.com

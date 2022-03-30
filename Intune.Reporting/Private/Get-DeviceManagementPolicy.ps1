@@ -55,7 +55,7 @@ Function Get-DeviceManagementPolicy {
             break
         }
     }
-    $graphApiVersion = "Beta"
+    $graphApiVersion = "beta"
     Write-Verbose "`nResource: $graphEndpoint"
     $uri = "https://graph.microsoft.com/$graphApiVersion/$($graphEndpoint)"
     try {
