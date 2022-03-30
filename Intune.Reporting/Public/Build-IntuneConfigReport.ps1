@@ -108,7 +108,7 @@
                 #Format-Assignment -policy $gpc | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 $Assignments = Format-Assignment -policy $gpc
                 $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_admxConfiguration.csv -Force
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_admxConfiguration.csv -Force -Append
 
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
@@ -124,7 +124,7 @@
                 #Format-Assignment -policy $a | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 $Assignments = Format-Assignment -policy $a
                 $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_autoPilot.csv -Force
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_autoPilot.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -139,7 +139,7 @@
                 #Format-Assignment -policy $d | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 $Assignments = Format-Assignment -policy $d
                 $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_deviceCompliance.csv -Force
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_deviceCompliance.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -154,7 +154,7 @@
                 #Format-Assignment -policy $d | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 $Assignments = Format-Assignment -policy $d
                 $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_deviceConfiguration.csv -Force
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_deviceConfiguration.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -197,7 +197,7 @@
                 #Format-Assignment -policy $e | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 $Assignments = Format-Assignment -policy $e
                 $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_ESPolicies.csv -Force
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_ESPolicies.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -212,7 +212,7 @@
                 #Format-Assignment -policy $e | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 $Assignments = Format-Assignment -policy $e
                 $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_enrollmentStatus.csv -Force
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_enrollmentStatus.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -227,7 +227,7 @@
                 #Format-Assignment -policy $f | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 $Assignments = Format-Assignment -policy $f
                 $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_featureUpdate.csv -Force
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_featureUpdate.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -254,7 +254,7 @@
                 #Format-Assignment -policy $s | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 $Assignments = Format-Assignment -policy $s
                 $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_scripts.csv -Force
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_scripts.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -269,7 +269,7 @@
                 #Format-Assignment -policy $o | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 $Assignments = Format-Assignment -policy $o
                 $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_office365.csv -Force
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_office365.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -299,7 +299,7 @@
                 #Format-Assignment -policy $s | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 $Assignments = Format-Assignment -policy $s
                 $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_proactiveRemediation.csv -Force
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_proactiveRemediation.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -314,7 +314,7 @@
                 #Format-Assignment -policy $a | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 $Assignments = Format-Assignment -policy $a 
                 $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_win32Apps.csv -Force
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_win32Apps.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
