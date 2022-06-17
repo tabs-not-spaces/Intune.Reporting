@@ -16,11 +16,13 @@
         if (!($PSVersionTable.PSEdition -eq 'core')) {
             throw "Needs to be run in PWSH 7."
         }
-        $auth = Get-MsalToken -ClientId $script:applicationId -Tenant $Tenant -DeviceCode
+        if ($null -eq $script:auth) {
+            $script:auth = Get-MsalToken -ClientId $script:applicationId -Tenant $Tenant -DeviceCode
+        }
         $authToken = @{
             'Content-Type'  = 'application/json'
-            'Authorization' = $auth.CreateAuthorizationHeader()
-            'ExpiresOn'     = $($auth.ExpiresOn.LocalDateTime)
+            'Authorization' = $script:auth.CreateAuthorizationHeader()
+            'ExpiresOn'     = $($script:auth.ExpiresOn.LocalDateTime)
         }
         #endregion
         #region Grab the endpoint data
@@ -43,7 +45,7 @@
         }
         #endregion
         #region configuration
-        $outputPath = "$outputFolder\$Tenant"
+        $outputPath = (Join-Path -Path $OutputFolder -ChildPath $Tenant).toString()
         $paths = @{
             admx              = (($config.admxConfiguration) ? "$outputPath\admx" : $null)
             apps              = (($config.win32Apps) ? "$outputPath\apps" : $null)
