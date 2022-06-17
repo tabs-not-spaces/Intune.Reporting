@@ -1,4 +1,4 @@
-function Get-EndpointSecurityPolicyDetails {
+function Get-EndpointSecurityPolicyDetail {
     [cmdletbinding()]
     param (
         [parameter(Mandatory=$true)]
