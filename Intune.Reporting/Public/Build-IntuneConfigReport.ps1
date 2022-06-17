@@ -92,7 +92,7 @@
                     $definitionValuedefinitionDisplayName = $definitionValuedefinition.displayName
                     $definitionValuePresentationValues = Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues -GroupPolicyConfigurationID $gpc.id -GroupPolicyConfigurationsDefinitionValueID $v.id
                     $outdef = [PSCustomObject]@{
-                        enabled = $($v.enabled.tostring().tolower())
+                        enabled = $($v.enabled.ToString().ToLower())
                     }
                     if ($definitionValuePresentationValues.values.count -gt 1) {
                         $presvalues = foreach ($pres in $definitionValuePresentationValues.values) {
