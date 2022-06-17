@@ -37,7 +37,7 @@ Function Get-DeviceManagementPolicy {
         }
         "EnrollmentStatus" {
             $graphEndpoint = 'deviceManagement/deviceEnrollmentConfigurations'
-            $filter = "?`$filter=isOf('microsoft.graph.windows10EnrollmentCompletionPageConfiguration')"
+            $filter = "?`$filter=(deviceEnrollmentConfigurationType eq 'Windows10EnrollmentCompletionPageConfiguration')"
             break
         }
         "FeatureUpdate" {

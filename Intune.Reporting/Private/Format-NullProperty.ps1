@@ -1,4 +1,4 @@
-function Format-NullProperties {
+function Format-NullProperty {
     [cmdletbinding()]
     param(
         [parameter(Mandatory, ValueFromPipeline)]

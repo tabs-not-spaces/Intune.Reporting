@@ -16,11 +16,16 @@
         if (!($PSVersionTable.PSEdition -eq 'core')) {
             throw "Needs to be run in PWSH 7."
         }
-        $auth = Get-MsalToken -ClientId $script:applicationId -Tenant $Tenant -DeviceCode
+        if ($null -eq $script:auth) {
+            $script:auth = Get-MsalToken -ClientId $script:applicationId -Tenant $Tenant -DeviceCode
+        }
+        else {
+            $script:auth = Get-MsalToken -ClientId $script:applicationId -ForceRefresh
+        }
         $authToken = @{
             'Content-Type'  = 'application/json'
-            'Authorization' = $auth.CreateAuthorizationHeader()
-            'ExpiresOn'     = $($auth.ExpiresOn.LocalDateTime)
+            'Authorization' = $script:auth.CreateAuthorizationHeader()
+            'ExpiresOn'     = $($script:auth.ExpiresOn.LocalDateTime)
         }
         #endregion
         #region Grab the endpoint data
@@ -37,13 +42,13 @@
             enrollmentStatus       = $Filter -match "all|enrollmentStatus" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EnrollmentStatus) : $null
             featureUpdate          = $Filter -match "all|featureUpdate" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType FeatureUpdate) : $null
             scripts                = $Filter -match "all|scripts" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Script) : $null
-            office365              = $Filter -match "all|office365" ? (Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Office365) : $null
+            office365              = $Filter -match "all|office365" ? (Get-MobileAppConfiguration -AuthToken $authToken -MobileAppType Office365) : $null
             proactiveRemediation     = $Filter -match "all|proactiveRemediation" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType ProactiveRemediation) : $null
-            win32Apps              = $Filter -match "all|win32Apps" ? (Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Win32) : $null
+            win32Apps              = $Filter -match "all|win32Apps" ? (Get-MobileAppConfiguration -AuthToken $authToken -MobileAppType Win32) : $null
         }
         #endregion
         #region configuration
-        $outputPath = "$outputFolder\$Tenant"
+        $outputPath = (Join-Path -Path $OutputFolder -ChildPath $Tenant).ToString()
         $paths = @{
             admx              = (($config.admxConfiguration) ? "$outputPath\admx" : $null)
             apps              = (($config.win32Apps) ? "$outputPath\apps" : $null)
@@ -90,7 +95,7 @@
                     $definitionValuedefinitionDisplayName = $definitionValuedefinition.displayName
                     $definitionValuePresentationValues = Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues -GroupPolicyConfigurationID $gpc.id -GroupPolicyConfigurationsDefinitionValueID $v.id
                     $outdef = [PSCustomObject]@{
-                        enabled = $($v.enabled.tostring().tolower())
+                        enabled = $($v.enabled.ToString().ToLower())
                     }
                     if ($definitionValuePresentationValues.values.count -gt 1) {
                         $presvalues = foreach ($pres in $definitionValuePresentationValues.values) {
@@ -101,7 +106,7 @@
                     $filename = Format-String -inputString "$($DefinitionValuedefinition.categoryPath)-$definitionValuedefinitionDisplayName"
                     $outdef | ConvertTo-Json -Depth 10 | Out-File -FilePath "$($paths.admx)\$($folderName)\$filename.json" -Encoding ascii
                     $tmp = @{ }
-                    $tmp.jsonResult = Format-NullProperties -InputObject $outdef | ConvertTo-Json -Depth 20
+                    $tmp.jsonResult = Format-NullProperty -InputObject $outdef | ConvertTo-Json -Depth 20
                     $tmp.mdResult = (Convert-JsonToMarkdown -json ($tmp.jsonResult) -title "`n##### $($filename -replace '_', ' ')" ) -replace 'presentationValues.',''
                     $tmp.mdResult | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 }
@@ -164,7 +169,7 @@
                     "settings" = $intents
                 } | ConvertTo-Json | Out-File -FilePath "$($paths.endpointSecurity)\$folderName\intent.json" -Encoding ascii
                 #expand setting values
-                Get-EndpointSecurityPolicyDetails -AuthToken $authToken -ESPolicies $e
+                Get-EndpointSecurityPolicyDetail -AuthToken $authToken -ESPolicies $e
                 foreach ($s in $e.settings) {
                     if (!($s.valueJson -eq '"notConfigured"' -or $s.valueJson -eq 'null')) {
                         Write-Verbose "$($s.DisplayName): $($s.valueJson)"
