@@ -9,6 +9,17 @@ trigger:
       - /.gitignore
       - /readme.md
       - /.tests
+  
+pr:
+  branches:
+    include:
+      - /Intune.Reporting/*
+  paths:
+    exclude:
+      - /.gitignore
+      - /readme.md
+      - /.tests
+
 
 stages:
   - stage: Build
@@ -51,6 +62,7 @@ stages:
               testRunTitle: 'Code Quality Test'
 
           - task: CopyFiles@2
+            condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
             inputs:
               SourceFolder: './bin/release'
               Contents: '**'
@@ -58,6 +70,7 @@ stages:
               CleanTargetFolder: true
 
           - task: PublishPipelineArtifact@1
+            condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
             displayName: Publish Artifact
             inputs:
               targetPath: '$(Build.ArtifactStagingDirectory)'
@@ -65,6 +78,7 @@ stages:
               publishLocation: 'pipeline'
 
   - stage: Deploy
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
     jobs:
       - deployment: 'Deploy'
         displayName: 'Publish to PSGallery'
