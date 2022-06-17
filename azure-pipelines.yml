@@ -13,8 +13,10 @@ trigger:
 pr:
   branches:
     include:
-      - /Intune.Reporting/*
+      - master
   paths:
+    include:
+      - /Intune.Reporting/*
     exclude:
       - /.gitignore
       - /readme.md
