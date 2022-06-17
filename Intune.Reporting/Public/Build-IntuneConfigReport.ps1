@@ -45,7 +45,7 @@
         }
         #endregion
         #region configuration
-        $outputPath = (Join-Path -Path $OutputFolder -ChildPath $Tenant).toString()
+        $outputPath = (Join-Path -Path $OutputFolder -ChildPath $Tenant).ToString()
         $paths = @{
             admx              = (($config.admxConfiguration) ? "$outputPath\admx" : $null)
             apps              = (($config.win32Apps) ? "$outputPath\apps" : $null)
@@ -103,7 +103,7 @@
                     $filename = Format-String -inputString "$($DefinitionValuedefinition.categoryPath)-$definitionValuedefinitionDisplayName"
                     $outdef | ConvertTo-Json -Depth 10 | Out-File -FilePath "$($paths.admx)\$($folderName)\$filename.json" -Encoding ascii
                     $tmp = @{ }
-                    $tmp.jsonResult = Format-NullProperties -InputObject $outdef | ConvertTo-Json -Depth 20
+                    $tmp.jsonResult = Format-NullProperty -InputObject $outdef | ConvertTo-Json -Depth 20
                     $tmp.mdResult = (Convert-JsonToMarkdown -json ($tmp.jsonResult) -title "`n##### $($filename -replace '_', ' ')" ) -replace 'presentationValues.',''
                     $tmp.mdResult | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 }
