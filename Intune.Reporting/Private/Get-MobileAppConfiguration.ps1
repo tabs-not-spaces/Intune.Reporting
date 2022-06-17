@@ -1,4 +1,4 @@
-function Get-MobileAppConfigurations {
+function Get-MobileAppConfiguration {
     [cmdletbinding()]
     param
     (

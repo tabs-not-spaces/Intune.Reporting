@@ -39,9 +39,9 @@
             enrollmentStatus       = $Filter -match "all|enrollmentStatus" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EnrollmentStatus) : $null
             featureUpdate          = $Filter -match "all|featureUpdate" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType FeatureUpdate) : $null
             scripts                = $Filter -match "all|scripts" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Script) : $null
-            office365              = $Filter -match "all|office365" ? (Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Office365) : $null
+            office365              = $Filter -match "all|office365" ? (Get-MobileAppConfiguration -AuthToken $authToken -MobileAppType Office365) : $null
             proactiveRemediation     = $Filter -match "all|proactiveRemediation" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType ProactiveRemediation) : $null
-            win32Apps              = $Filter -match "all|win32Apps" ? (Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Win32) : $null
+            win32Apps              = $Filter -match "all|win32Apps" ? (Get-MobileAppConfiguration -AuthToken $authToken -MobileAppType Win32) : $null
         }
         #endregion
         #region configuration
@@ -166,7 +166,7 @@
                     "settings" = $intents
                 } | ConvertTo-Json | Out-File -FilePath "$($paths.endpointSecurity)\$folderName\intent.json" -Encoding ascii
                 #expand setting values
-                Get-EndpointSecurityPolicyDetails -AuthToken $authToken -ESPolicies $e
+                Get-EndpointSecurityPolicyDetail -AuthToken $authToken -ESPolicies $e
                 foreach ($s in $e.settings) {
                     if (!($s.valueJson -eq '"notConfigured"' -or $s.valueJson -eq 'null')) {
                         Write-Verbose "$($s.DisplayName): $($s.valueJson)"
