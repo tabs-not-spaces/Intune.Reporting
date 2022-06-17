@@ -19,6 +19,9 @@
         if ($null -eq $script:auth) {
             $script:auth = Get-MsalToken -ClientId $script:applicationId -Tenant $Tenant -DeviceCode
         }
+        else {
+            $script:auth = Get-MsalToken -ClientId $script:applicationId -ForceRefresh
+        }
         $authToken = @{
             'Content-Type'  = 'application/json'
             'Authorization' = $script:auth.CreateAuthorizationHeader()
