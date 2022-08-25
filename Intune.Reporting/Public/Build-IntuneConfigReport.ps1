@@ -34,11 +34,11 @@
             deviceCompliance       = $Filter -match "all|deviceCompliance" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Compliance) : $null
             deviceConfiguration    = $Filter -match "all|deviceConfiguration" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Configuration) : $null
             endpointSecurityPolicy = $Filter -match "all|endpointSecurityPolicy" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EndpointSecurity) : $null
-            enrollmentStatus       = $Filter -match "all|enrollmentStatus" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EnrollmentStatus) : $null
+            #enrollmentStatus       = $Filter -match "all|enrollmentStatus" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType EnrollmentStatus) : $null
             featureUpdate          = $Filter -match "all|featureUpdate" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType FeatureUpdate) : $null
             scripts                = $Filter -match "all|scripts" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType Script) : $null
             office365              = $Filter -match "all|office365" ? (Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Office365) : $null
-            proactiveRemediation     = $Filter -match "all|proactiveRemediation" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType ProactiveRemediation) : $null
+            proactiveRemediation   = $Filter -match "all|proactiveRemediation" ? (Get-DeviceManagementPolicy -AuthToken $authToken -ManagementType ProactiveRemediation) : $null
             win32Apps              = $Filter -match "all|win32Apps" ? (Get-MobileAppConfigurations -AuthToken $authToken -MobileAppType Win32) : $null
         }
         #endregion
@@ -105,7 +105,11 @@
                     $tmp.mdResult = (Convert-JsonToMarkdown -json ($tmp.jsonResult) -title "`n##### $($filename -replace '_', ' ')" ) -replace 'presentationValues.',''
                     $tmp.mdResult | Out-File $markdownReport -Encoding ascii -NoNewline -Append
                 }
-                Format-Assignment -policy $gpc | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                #Format-Assignment -policy $gpc | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments = Format-Assignment -policy $gpc
+                $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_admxConfiguration.csv -Force -Append
+
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -117,8 +121,10 @@
             "`n## AutoPilot Policies`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($a in $config.autoPilot) {
                 Format-Policy -policy $a -markdownReport $markdownReport -outFile "$($paths.autopilotPath)\$(Format-String -inputString $a.displayName)`.json"
-                Format-Assignment -policy $a | Out-File $markdownReport -Encoding ascii -NoNewline -Append
-
+                #Format-Assignment -policy $a | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments = Format-Assignment -policy $a
+                $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_autoPilot.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -130,7 +136,10 @@
             "`n## Device Compliance Policies`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($d in $config.deviceCompliance) {
                 Format-Policy -policy $d -markdownReport $markdownReport -outFile "$($paths.compliancePath)\$(Format-String -inputString $d.displayName)`.json"
-                Format-Assignment -policy $d | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                #Format-Assignment -policy $d | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments = Format-Assignment -policy $d
+                $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_deviceCompliance.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -142,7 +151,10 @@
             "`n## Device Configuration Policies`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($d in $config.deviceConfiguration) {
                 Format-Policy -policy $d -markdownReport $markdownReport -outFile "$($paths.configurationPath)\$(Format-String -inputString $d.displayName)`.json"
-                Format-Assignment -policy $d | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                #Format-Assignment -policy $d | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments = Format-Assignment -policy $d
+                $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_deviceConfiguration.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -182,7 +194,10 @@
                         Write-Verbose "$($s.DisplayName): $($s.valueJson)"
                     }
                 }
-                Format-Assignment -policy $e | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                #Format-Assignment -policy $e | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments = Format-Assignment -policy $e
+                $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_ESPolicies.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -194,7 +209,10 @@
             "`n## Enrollment Status Policy`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($e in $config.enrollmentStatus) {
                 Format-Policy -policy $e -markdownReport $markdownReport -outFile "$($paths.esp)\$(Format-String -inputString $e.displayName)`.json"
-                Format-Assignment -policy $e | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                #Format-Assignment -policy $e | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments = Format-Assignment -policy $e
+                $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_enrollmentStatus.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -206,7 +224,10 @@
             "`n## Feature Update Policy`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($f in $config.featureUpdate) {
                 Format-Policy -policy $f -markdownReport $markdownReport -outFile "$($paths.fu)\$(Format-String -inputString $f.displayName)`.json"
-                Format-Assignment -policy $f | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                #Format-Assignment -policy $f | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments = Format-Assignment -policy $f
+                $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_featureUpdate.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -230,7 +251,10 @@
                     outFile        = "$($paths.scriptPath)\$displayName\$displayName`.json"
                 }
                 Format-Policy @fpParam
-                Format-Assignment -policy $s | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                #Format-Assignment -policy $s | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments = Format-Assignment -policy $s
+                $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_scripts.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -242,7 +266,10 @@
             "`n## Office 365 Configuration`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($o in $config.office365) {
                 Format-Policy -policy $o -markdownReport $markdownReport -outFile "$($paths.o365)\$(Format-String -inputString $o.displayName)`.json"
-                Format-Assignment -policy $o | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                #Format-Assignment -policy $o | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments = Format-Assignment -policy $o
+                $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_office365.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -269,7 +296,10 @@
                     outFile        = "$($paths.prScripts)\$displayName\$displayName`.json"
                 }
                 Format-Policy @fpParam
-                Format-Assignment -policy $s | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                #Format-Assignment -policy $s | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments = Format-Assignment -policy $s
+                $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_proactiveRemediation.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
@@ -281,7 +311,10 @@
             "`n## Win32 Applications`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
             foreach ($a in $config.win32Apps) {
                 Format-Policy -policy $a -markdownReport $markdownReport -outFile "$($paths.apps)\$(Format-String -inputString $a.displayName)`.json"
-                Format-Assignment -policy $a | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                #Format-Assignment -policy $a | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments = Format-Assignment -policy $a 
+                $Assignments.Table | Out-File $markdownReport -Encoding ascii -NoNewline -Append
+                $Assignments.assignments | Export-CSV -Path $outputPath\Assignments_win32Apps.csv -Force -Append
             }
             "`n---`n" | Out-File $markdownReport -Encoding ascii -NoNewline -Append
         }
